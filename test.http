@@ -1,0 +1,7 @@
+POST http://localhost:5000/api/admin/create
+Content-Type: application/json
+
+{
+  "email": "admin@study.com",
+  "password": "12345"
+}
