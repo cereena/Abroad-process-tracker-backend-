@@ -1,17 +1,22 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose"; // Changed from require
 
-const enquirySchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true },
-    email: { type: String, required: true },
-    phone: { type: String, required: true },
-    countryInterested: { type: String },
-    status: {
-      type: String,
-      default: "Enquiry Received" 
-    }
+const enquirySchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  phone: String,
+  countryPreference: String,
+  message: String,
+
+  status: {
+    type: String,
+    default: "New Lead",
   },
-  { timestamps: true }
-);
 
-module.exports = mongoose.model("Enquiry", enquirySchema);
+  assignedTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "DocExecutive",
+  },
+}, { timestamps: true });
+
+const Enquiry = mongoose.model("Enquiry", enquirySchema);
+export default Enquiry;

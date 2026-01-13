@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose"; // Changed from require
 
 const progressSchema = new mongoose.Schema(
   {
@@ -21,4 +21,6 @@ const progressSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Progress", progressSchema);
+// Changed from module.exports to export default
+const Progress = mongoose.model("Progress", progressSchema);
+export default Progress;

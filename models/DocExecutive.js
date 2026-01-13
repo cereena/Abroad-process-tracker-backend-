@@ -1,10 +1,11 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const docExecSchema = new mongoose.Schema({
-  name: String,
-  email: { type: String, unique: true },
-  password: String,
-  role: { type: String, default: "doc" }
-});
+const docSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  phone: { type: String, required: true }, 
+  branch: { type: String },               
+  password: { type: String, required: true }
+}, { timestamps: true });
 
-module.exports = mongoose.model("DocExecutive", docExecSchema);
+export default mongoose.model("DocExecutive", docSchema);

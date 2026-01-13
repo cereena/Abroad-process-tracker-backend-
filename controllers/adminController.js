@@ -1,8 +1,11 @@
-const Admin = require("../models/admin");
-const bcrypt = require("bcryptjs");
+import Admin from "../models/admin.js"; // Added .js extension
+import bcrypt from "bcryptjs";
+import Student from "../models/Student.js";
+import Enquiry from "../models/Enquiry.js";
+import DocExecutive from "../models/DocExecutive.js";
 
 // CREATE ADMIN
-const createAdmin = async (req, res) => {
+export const createAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -31,7 +34,7 @@ const createAdmin = async (req, res) => {
 };
 
 // LOGIN ADMIN
-const loginAdmin = async (req, res) => {
+export const loginAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -61,7 +64,31 @@ const loginAdmin = async (req, res) => {
   }
 };
 
-module.exports = {
-  createAdmin,
-  loginAdmin
+// adding the student
+export const convertEnquiryToStudent = async (req, res) => {
+  try {
+    const { enquiryId, name, email, phone } = req.body;
+
+    const student = await Student.create({
+      name,
+      email,
+      phone,
+      enquiryId
+    });
+
+    await Enquiry.findByIdAndUpdate(enquiryId, {
+      status: "Converted to Student"
+    });
+
+    res.json({ message: "Student created", student });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+};
+
+export const createDocExecutive = async (req, res) => {
+  const { name, email, password } = req.body;
+
+  const exec = await DocExecutive.create({ name, email, password });
+  res.json({ message: "Executive created", exec });
 };

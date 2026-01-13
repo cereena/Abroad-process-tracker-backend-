@@ -1,6 +1,13 @@
-const express = require("express");
+import express from "express";
+
+
+// NOTE: Ensure your Enquiry model file ends in .js and uses 'export default'
+import Enquiry from "../models/Enquiry.js"; 
+import { createEnquiry } from "../controllers/enquiriesController.js";
+
 const router = express.Router();
-const Enquiry = require("../models/Enquiry");
+
+router.post("/", createEnquiry);
 
 // Student submits enquiry
 router.post("/", async (req, res) => {
@@ -15,10 +22,15 @@ router.post("/", async (req, res) => {
 
 // Admin views all enquiries
 router.get("/", async (req, res) => {
-  const enquiries = await Enquiry.find().sort({ createdAt: -1 });
-  res.json(enquiries);
+  try {
+    const enquiries = await Enquiry.find().sort({ createdAt: -1 });
+    res.json(enquiries);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
+// Update Status
 router.put("/:id/status", async (req, res) => {
   try {
     const { status } = req.body;
@@ -39,5 +51,5 @@ router.put("/:id/status", async (req, res) => {
   }
 });
 
-
-module.exports = router;
+// FIX: Export default so server.js can find it
+export default router; 

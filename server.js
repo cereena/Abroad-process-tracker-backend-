@@ -1,23 +1,27 @@
-require("dotenv").config();
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import connectDB from "./config/db.js";
 
-const express = require("express");
-const connectDB = require("./config/db");
+// Import Routes (Ensure all have .js extension)
+import adminRoutes from "./routes/adminRoutes.js";
+import progressRoutes from "./routes/progressRoutes.js";
+import enquiryRoutes from "./routes/enquiryRoutes.js";
+import studentRoutes from "./routes/studentRoutes.js";
+import docAuthRoutes from "./routes/docAuthRoutes.js";
+import applicationRoutes from "./routes/applicationRoutes.js";
+import commissionRoutes from "./routes/commissionRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
-const adminRoutes = require("./routes/adminRoutes");
-const progressRoutes = require("./routes/progressRoutes");
-const enquiryRoutes = require("./routes/enquiryRoutes");
-const studentRoutes = require("./routes/studentRoutes");
+dotenv.config();
 
 const app = express();
 
-// Middleware FIRST
+// Middleware
 app.use(express.json());
-
 app.use(cors({
   origin: "http://localhost:5173"
 }));
-
 
 // Connect DB
 connectDB();
@@ -25,17 +29,21 @@ connectDB();
 // Routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/progress", progressRoutes);
-
 app.use("/api/enquiries", enquiryRoutes);
 app.use("/api/student", studentRoutes);
+app.use("/api/doc", docAuthRoutes);
+app.use("/api/applications", applicationRoutes);
+app.use("/api/commissions", commissionRoutes);
+app.use("/api/notifications", notificationRoutes);
+
+
 
 // Test route
 app.get("/", (req, res) => {
   res.send("Study Abroad API running");
 });
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server running on port ${process.env.PORT}`);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-

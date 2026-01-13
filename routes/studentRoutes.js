@@ -1,10 +1,11 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const { registerStudent, loginStudent, getStudentDashboard } = require("../controllers/studentController");
+import { registerStudent, loginStudent,getStudentDashboard } from "../controllers/studentController.js";
 
-
+// Define your routes
 router.post("/register", registerStudent);
 router.post("/login", loginStudent);
 router.get("/dashboard/:studentId", getStudentDashboard);
 
-module.exports = router;
+export default router;
+
