@@ -56,3 +56,25 @@ export const loginDoc = async (req, res) => {
   }
 };
 
+export const createDocExecutive = async (req, res) => {
+  try {
+    const { name, email, phone, branch, countries, password } = req.body;
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const exec = await User.create({
+      name,
+      email,
+      phone,
+      branch,
+      password: hashed,
+      role: "doc-executive",
+      countries
+    });
+
+    res.status(201).json(exec);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+

@@ -1,6 +1,54 @@
 import Student from "../models/student.js"; // Match capitalization
 import Enquiry from "../models/Enquiry.js";
 import bcrypt from "bcryptjs";
+import { generateEnquiryId } from "../utils/generateEnquiryId.js";
+
+// CREATE STUDENT FROM LEAD
+export const createStudent = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      phone,
+      countryPreference,
+      leadId,
+      assignedTo
+    } = req.body;
+
+    const enquiryId = generateEnquiryId();
+
+    const student = await Student.create({
+      enquiryId,
+      name,
+      email,
+      phone,
+      countryPreference,
+      leadId,
+      assignedTo
+    });
+
+    res.status(201).json(student);
+    const generateStudentCode = () => {
+      return "STU-" + Date.now().toString().slice(-6);
+    };
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ADMIN → get all students
+export const getAllStudents = async (req, res) => {
+  const students = await Student.find().populate("assignedTo", "name email");
+  res.json(students);
+};
+
+// EXECUTIVE → get only assigned students
+export const getMyStudents = async (req, res) => {
+  const executiveId = req.user.id;   // from auth middleware
+  const students = await Student.find({ assignedTo: executiveId });
+  res.json(students);
+};
 
 // Use 'export const' for every function
 export const registerStudent = async (req, res) => {

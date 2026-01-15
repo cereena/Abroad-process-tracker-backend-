@@ -22,14 +22,11 @@ export const getAllNotifications = async (req, res) => {
 export const getAdminNotifications = async (req, res) => {
   try {
     const notes = await Notification.find({ forRole: "admin" })
-      .populate({
-        path: "enquiryId",
-        select: "name email phone countryPreference message"
-      })
+      .populate("enquiryId", "name email phone countryPreference message")
       .sort({ createdAt: -1 });
 
-    res.json(notes);
-  } catch (e) {
-    res.status(500).json({ message: e.message });
+    res.status(200).json(notes);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
