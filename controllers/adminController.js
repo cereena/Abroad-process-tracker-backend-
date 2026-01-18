@@ -1,8 +1,9 @@
 import Admin from "../models/admin.js"; // Added .js extension
 import bcrypt from "bcryptjs";
-import Student from "../models/Student.js";
+import Student from "../models/student.js";
 import Enquiry from "../models/Enquiry.js";
 import DocExecutive from "../models/DocExecutive.js";
+import jwt from "jsonwebtoken";
 
 // CREATE ADMIN
 export const createAdmin = async (req, res) => {
@@ -52,17 +53,27 @@ export const loginAdmin = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    // 🔥 JWT CREATED HERE
+    const token = jwt.sign(
+      { id: admin._id, role: "admin" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
     res.status(200).json({
       message: "Admin login successful",
-      admin: {
+      token,
+      user: {
         id: admin._id,
-        email: admin.email
+        email: admin.email,
+        role: "admin"
       }
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // adding the student
 export const convertEnquiryToStudent = async (req, res) => {

@@ -1,34 +1,6 @@
 import DocExecutive from "../models/DocExecutive.js";
 import bcrypt from "bcryptjs";
-
-export const registerDoc = async (req, res) => {
-  try {
-    console.log("BODY RECEIVED:", req.body);
-
-    const { name, email, phone, branch, password } = req.body;
-
-    if (!name || !email || !phone || !password) {
-      return res.status(400).json({ message: "Required fields are missing" });
-    }
-
-    const exists = await DocExecutive.findOne({ email });
-    if (exists) return res.status(400).json({ message: "Already exists" });
-
-    const hashed = await bcrypt.hash(password, 10);
-
-    const doc = await DocExecutive.create({
-      name,
-      email,
-      phone,
-      branch,
-      password: hashed,
-    });
-
-    res.status(201).json({ message: "Doc registered", doc });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
+import jwt from "jsonwebtoken";
 
 export const loginDoc = async (req, res) => {
   try {
@@ -44,37 +16,22 @@ export const loginDoc = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    const token = jwt.sign(
+      { id: doc._id, role: doc.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
     res.status(200).json({
-      message: "Login successful",
-      doc: {
+      token,
+      user: {
         id: doc._id,
-        email: doc.email,
-      },
+        role: doc.role,
+        email: doc.email
+      }
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 };
-
-export const createDocExecutive = async (req, res) => {
-  try {
-    const { name, email, phone, branch, countries, password } = req.body;
-
-    const hashed = await bcrypt.hash(password, 10);
-
-    const exec = await User.create({
-      name,
-      email,
-      phone,
-      branch,
-      password: hashed,
-      role: "doc-executive",
-      countries
-    });
-
-    res.status(201).json(exec);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-

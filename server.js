@@ -13,6 +13,7 @@ import applicationRoutes from "./routes/applicationRoutes.js";
 import commissionRoutes from "./routes/commissionRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import leadRoutes from "./routes/leadRoutes.js";
+import docExecutiveRoutes from "./routes/docExecutiveRoutes.js";
 
 
 dotenv.config();
@@ -38,6 +39,8 @@ app.use("/api/applications", applicationRoutes);
 app.use("/api/commissions", commissionRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/leads", leadRoutes);
+app.use("/api/doc-executives", docExecutiveRoutes);
+
 
 
 
