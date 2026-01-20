@@ -14,28 +14,41 @@ export const createStudent = async (req, res) => {
       });
     }
 
-    // 1️⃣ Fetch lead
+    // 1️ Fetch lead
     const lead = await Lead.findById(leadId);
     if (!lead) {
       return res.status(404).json({ message: "Lead not found" });
     }
 
-    // 2️⃣ Block duplicate student creation from same lead
+    // 2️ Block duplicate student creation from same lead
     if (lead.isStudentCreated) {
       return res.status(409).json({
         message: "Student already created from this lead"
       });
     }
 
-    // 3️⃣ Fetch enquiry (must exist)
-    const enquiry = await Enquiry.findById(lead.enquiryRef);
-    if (!enquiry) {
-      return res.status(500).json({
-        message: "Data integrity error: enquiry missing for lead"
-      });
+    // 3️ Fetch enquiry (must exist)
+    let enquiry = null;
+
+    if (lead.enquiryRef) {
+      enquiry = await Enquiry.findById(lead.enquiryRef);
     }
 
-    // 4️⃣ Prevent duplicate student by email
+    if (!enquiry) {
+      enquiry = await Enquiry.create({
+        name: lead.name,
+        email: lead.email,
+        phone: lead.phone,
+        countryPreference: lead.countryPreference,
+        status: "Converted to Student"
+      });
+
+      lead.enquiryRef = enquiry._id;
+      await lead.save();
+    }
+
+
+    // 4️ Prevent duplicate student by email
     const existingStudent = await Student.findOne({ email: lead.email });
     if (existingStudent) {
       return res.status(409).json({
@@ -43,10 +56,10 @@ export const createStudent = async (req, res) => {
       });
     }
 
-    // 5️⃣ Generate student enquiry code
+    // 5️ Generate student enquiry code
     const studentEnquiryCode = generateEnquiryId();
 
-    // 6️⃣ Create student
+    // 6️ Create student
     const student = await Student.create({
       name: lead.name,
       email: lead.email,
@@ -58,7 +71,7 @@ export const createStudent = async (req, res) => {
       assignedTo
     });
 
-    // 7️⃣ Update enquiry & lead
+    // 7️ Update enquiry & lead
     enquiry.status = "Converted to Student";
     lead.status = "Student Created";
     lead.isStudentCreated = true;
@@ -83,7 +96,7 @@ export const createStudent = async (req, res) => {
 export const getAllStudents = async (req, res) => {
   try {
     const students = await Student.find()
-      .populate("enquiryRef") 
+      .populate("enquiryRef")
       .populate({
         path: "assignedTo",
         select: "name email",
@@ -96,5 +109,22 @@ export const getAllStudents = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const getMyStudents = async (req, res) => {
+  try {
+    const docId = req.user.id;
+
+    const students = await Student.find({ assignedTo: docId })
+      .populate("enquiryRef", "enquiryCode")
+      .populate("leadId", "name email phone")
+      .sort({ createdAt: -1 });
+
+    res.json(students);
+  } catch (err) {
+    console.error("GET MY STUDENTS ERROR:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
 
 
