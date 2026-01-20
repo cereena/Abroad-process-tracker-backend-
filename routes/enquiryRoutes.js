@@ -1,7 +1,4 @@
 import express from "express";
-
-
-// NOTE: Ensure your Enquiry model file ends in .js and uses 'export default'
 import Enquiry from "../models/Enquiry.js"; 
 import { createEnquiry } from "../controllers/enquiriesController.js";
 

@@ -14,12 +14,16 @@ const docExecutiveSchema = new mongoose.Schema({
     required: true
   },
 
-  
-  countriesHandled: [String],
+
+  countriesHandled: {
+    type: [String],
+    default: []
+  },
+
 
   role: {
     type: String,
-    default: "doc"
+    default: "DocExecutive"
   }
 }, { timestamps: true });
 

@@ -35,7 +35,7 @@ const studentSchema = new mongoose.Schema(
     // ASSIGNMENT
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User"   // executive
+      ref: "DocExecutive"   // executive
     },
 
     // STATUS PIPELINE
