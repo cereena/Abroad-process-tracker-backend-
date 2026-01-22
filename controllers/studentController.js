@@ -3,7 +3,11 @@ import Student from "../models/student.js";
 import Lead from "../models/Lead.js";
 import Enquiry from "../models/Enquiry.js";
 import { generateEnquiryId } from "../utils/generateEnquiryId.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
+
+// admin doing this student creation
 export const createStudent = async (req, res) => {
   try {
     const { leadId, assignedTo } = req.body;
@@ -92,7 +96,7 @@ export const createStudent = async (req, res) => {
   }
 };
 
-
+// admin listing the student details in admin's student panel
 export const getAllStudents = async (req, res) => {
   try {
     const students = await Student.find()
@@ -110,6 +114,7 @@ export const getAllStudents = async (req, res) => {
   }
 };
 
+// documentation executive viewing their assigned student in their panel
 export const getMyStudents = async (req, res) => {
   try {
     const docId = req.user.id;
@@ -126,5 +131,126 @@ export const getMyStudents = async (req, res) => {
   }
 };
 
+// student registers with their enquiryid
+export const registerStudent = async (req, res) => {
+  try {
+    const { enquiryId, email, password } = req.body;
 
+    if (!enquiryId || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const student = await Student.findOne({
+      studentEnquiryCode: enquiryId,
+      email
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: "Invalid enquiry ID or email" });
+    }
+
+    if (student.password) {
+      return res.status(409).json({ message: "Student already registered" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    student.password = hashedPassword;
+
+    await student.save();
+
+    res.status(200).json({
+      message: "Registration successful. Please login."
+    });
+  } catch (err) {
+    console.error("STUDENT REGISTER ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// student logins
+export const loginStudent = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const student = await Student.findOne({ email });
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    if (!student.password) {
+      return res.status(403).json({
+        message: "Student not registered yet. Please register first."
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, student.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const token = jwt.sign(
+      { id: student._id, role: "student" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.status(200).json({
+      token,
+      user: {
+        id: student._id,
+        role: "student",
+        email: student.email
+      }
+    });
+  } catch (err) {
+    console.error("STUDENT LOGIN ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// updating student profile
+export const updateStudentProfile = async (req, res) => {
+  const student = await Student.findById(req.user.id);
+
+  student.fullName = req.body.fullName;
+  student.dob = req.body.dob;
+  student.passportNumber = req.body.passportNumber;
+  student.education = req.body.education;
+  student.phone = req.body.phone;
+
+  // PROFILE COMPLETION CHECK (HERE)
+  const isProfileComplete =
+    student.fullName &&
+    student.dob &&
+    student.passportNumber &&
+    student.education?.degree &&
+    student.phone;
+
+  student.profileCompleted = Boolean(isProfileComplete);
+
+  await student.save();
+
+  // NOTIFICATION (HERE)
+  await Notification.create({
+    role: "docExecutive",
+    user: student.assignedTo,
+    message: `Student ${student.name} updated Personal Information`,
+    student: student._id,
+    section: "Personal Info",
+  });
+
+
+  res.json({
+    message: "Profile updated",
+    profileCompleted: student.profileCompleted,
+  });
+};
+
+export const getProfileStatus = async (req, res) => {
+  const student = await Student.findById(req.user.id).select("profileCompleted");
+
+  res.json({
+    profileCompleted: student.profileCompleted,
+  });
+};
 
