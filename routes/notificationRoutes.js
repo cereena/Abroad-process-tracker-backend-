@@ -2,8 +2,10 @@ import express from "express";
 import {
   createNotification,
   getAllNotifications,
-  getAdminNotifications
+  getAdminNotifications,
+  getDocExecutiveNotifications
 } from "../controllers/notificationController.js";
+import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -13,5 +15,11 @@ router.get("/", getAllNotifications);
 
 // admin notifications (WITH POPULATE)
 router.get("/admin", getAdminNotifications);
+
+router.get(
+  "/doc-executive",
+  protect(["doc-executive"]),
+  getDocExecutiveNotifications
+);
 
 export default router;

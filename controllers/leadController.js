@@ -5,39 +5,65 @@ import Enquiry from "../models/Enquiry.js";
 export const createLeadFromEnquiry = async (req, res) => {
   try {
     const { enquiryId } = req.body;
-    const existingLead = await Lead.findOne({ enquiryId });
 
-    if (existingLead) {
-      return res.status(400).json({
-        message: "This enquiry is already added as a lead"
-      });
+    if (!enquiryId) {
+      return res.status(400).json({ message: "enquiryId is required" });
     }
 
-
+    // 1️ Fetch enquiry
     const enquiry = await Enquiry.findById(enquiryId);
     if (!enquiry) {
       return res.status(404).json({ message: "Enquiry not found" });
     }
 
+    // 2️ HARD BLOCK: already converted
+    if (enquiry.convertedToLead === true) {
+      return res.status(400).json({
+        message: "This enquiry is already converted to a lead",
+      });
+    }
+
+    // 3️ Create lead
     const lead = await Lead.create({
-      enquiryId: enquiry._id,
+      enquiryRef: enquiry._id,
       name: enquiry.name,
       email: enquiry.email,
       phone: enquiry.phone,
-      countryPreference: enquiry.countryPreference
+      countryPreference: enquiry.countryPreference,
+      status: "Not Registered",
+      isStudentCreated: false
     });
 
-    res.status(201).json({ message: "Lead created", lead });
+    // 4️ PERMANENTLY MARK ENQUIRY
+    await Enquiry.findByIdAndUpdate(enquiryId, {
+      convertedToLead: true
+    });
+
+    res.status(201).json({
+      message: "Lead created successfully",
+      lead,
+    });
+
   } catch (err) {
+    console.error("CREATE LEAD ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
+
 // Get all leads
 export const getAllLeads = async (req, res) => {
   try {
-    const leads = await Lead.find().sort({ createdAt: -1 });
-    res.json(leads);
+    const leads = await Lead.find()
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const normalized = leads.map(l => ({
+      ...l,
+      enquiryId: l.enquiryRef || l.enquiryId
+    }));
+
+    res.json(normalized);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

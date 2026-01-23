@@ -22,10 +22,33 @@ export const getAllNotifications = async (req, res) => {
 export const getAdminNotifications = async (req, res) => {
   try {
     const notes = await Notification.find({ forRole: "admin" })
-      .populate("enquiryId", "name email phone countryPreference message")
+      .populate({
+        path: "enquiryId",
+        match: { convertedToLead: false }, // ✅ KEY FIX
+        select: "name email phone countryPreference message"
+      })
       .sort({ createdAt: -1 });
 
-    res.status(200).json(notes);
+    const filteredNotes = notes.filter(
+      note => note.enquiryId !== null
+    );
+
+    res.status(200).json(filteredNotes);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getDocExecutiveNotifications = async (req, res) => {
+  try {
+    const notes = await Notification.find({
+      forRole: "doc-executive",
+      userId: req.user.id,
+    })
+      .populate("studentId", "name email studentEnquiryCode")
+      .sort({ createdAt: -1 });
+
+    res.json(notes);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -134,6 +134,15 @@ const studentSchema = new mongoose.Schema(
       city: { type: String, default: "" },
       postalCode: { type: String, default: "" },
     },
+    profileNotified: {
+      type: Boolean,
+      default: false,
+    },
+    profileCompleted: {
+      type: Boolean,
+      default: false
+    }
+    ,
   },
   { timestamps: true }
 );

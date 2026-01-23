@@ -6,9 +6,13 @@ import {
   registerStudent,
   loginStudent,
   getProfileStatus,
+  updateStudentProfile,
+  getStudentProfile,
+  getStudentProfileById,
+  getStudentById
 } from "../controllers/studentController.js";
 
-import { protect, protectStudent  } from "../middleware/auth.js";
+import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -18,16 +22,26 @@ router.post("/", protect(["admin"]), createStudent);
 // Admin fetches all students
 router.get("/all", protect(["admin"]), getAllStudents);
 
-// Documentation Executive fetches ONLY their students
+// Documentation Executive fetches their students
 router.get("/my", protect(["docExecutive"]), getMyStudents);
 
-// registration for new students with enquiryid
+// Student registration
 router.post("/register", registerStudent);
 
-// student logins
+// Student login
 router.post("/login", loginStudent);
 
-router.get("/profile-status", protectStudent, getProfileStatus);
+// Student profile status
+router.get("/profile-status", protect(["student"]), getProfileStatus);
+
+// Student updates profile ✅ FIXED
+router.put("/profile", protect(["student"]), updateStudentProfile);
+
+router.get("/profile", protect(["student"]), getStudentProfile);
+
+router.get("/students/:id/profile", protect(["docExecutive", "admin"]),getStudentProfileById);
+
+router.get("/:id", protect(["docExecutive", "admin"]),getStudentById);
 
 
 export default router;

@@ -16,6 +16,10 @@ const enquirySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "DocExecutive",
   },
+   convertedToLead: {
+    type: Boolean,
+    default: false
+  },
 }, { timestamps: true });
 
 const Enquiry = mongoose.model("Enquiry", enquirySchema);

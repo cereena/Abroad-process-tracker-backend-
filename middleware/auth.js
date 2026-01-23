@@ -1,53 +1,56 @@
 import jwt from "jsonwebtoken";
 
 export const protect = (roles = []) => {
+  // normalize roles → always array
+  if (typeof roles === "string") {
+    roles = [roles];
+  }
+
   return (req, res, next) => {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "No token provided" });
-    }
-
-    const token = authHeader.split(" ")[1];
-
     try {
+      const authHeader = req.headers.authorization;
+
+      // 1️ Check token presence
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({
+          success: false,
+          message: "Authorization token missing",
+        });
+      }
+
+      const token = authHeader.split(" ")[1];
+
+      // 2️ Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // decoded = { id, role, iat, exp }
-      req.user = decoded;
+      // decoded must contain id & role
+      if (!decoded?.id || !decoded?.role) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid token payload",
+        });
+      }
 
-      if (roles.length && !roles.includes(decoded.role)) {
-        return res.status(403).json({ message: "Access denied" });
+      // 3️ Attach user to request
+      req.user = {
+        id: decoded.id,
+        role: decoded.role,
+      };
+
+      // 4️ Role authorization (if required)
+      if (roles.length > 0 && !roles.includes(req.user.role)) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied",
+        });
       }
 
       next();
     } catch (err) {
-      return res.status(401).json({ message: "Invalid or expired token" });
+      return res.status(401).json({
+        success: false,
+        message: "Token expired or invalid",
+      });
     }
   };
-};
-
-
-export const protectStudent = async (req, res, next) => {
-  let token = req.headers.authorization;
-
-  if (!token || !token.startsWith("Bearer")) {
-    return res.status(401).json({ message: "Not authorized" });
-  }
-
-  try {
-    token = token.split(" ")[1];
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const student = await Student.findById(decoded.id).select("-password");
-
-    if (!student) {
-      return res.status(401).json({ message: "Student not found" });
-    }
-
-    req.user = student;
-    next();
-  } catch (err) {
-    res.status(401).json({ message: "Invalid token" });
-  }
 };

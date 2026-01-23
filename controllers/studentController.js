@@ -5,6 +5,8 @@ import Enquiry from "../models/Enquiry.js";
 import { generateEnquiryId } from "../utils/generateEnquiryId.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import Notification from "../models/Notification.js";
+
 
 
 // admin doing this student creation
@@ -120,8 +122,10 @@ export const getMyStudents = async (req, res) => {
     const docId = req.user.id;
 
     const students = await Student.find({ assignedTo: docId })
-      .populate("enquiryRef", "enquiryCode")
-      .populate("leadId", "name email phone")
+      .select(
+        "studentEnquiryCode name email phone countryPreference profileCompleted profileCompletionPercent status createdAt"
+      )
+
       .sort({ createdAt: -1 });
 
     res.json(students);
@@ -130,6 +134,7 @@ export const getMyStudents = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // student registers with their enquiryid
 export const registerStudent = async (req, res) => {
@@ -195,10 +200,12 @@ export const loginStudent = async (req, res) => {
     );
 
     res.status(200).json({
+      success: true,
       token,
       user: {
         id: student._id,
         role: "student",
+        name: student.name,
         email: student.email
       }
     });
@@ -208,44 +215,86 @@ export const loginStudent = async (req, res) => {
   }
 };
 
-// updating student profile
+// UPDATE STUDENT PROFILE (PHASE 1)
 export const updateStudentProfile = async (req, res) => {
-  const student = await Student.findById(req.user.id);
+  try {
+    const student = await Student.findById(req.user.id);
 
-  student.fullName = req.body.fullName;
-  student.dob = req.body.dob;
-  student.passportNumber = req.body.passportNumber;
-  student.education = req.body.education;
-  student.phone = req.body.phone;
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
 
-  // PROFILE COMPLETION CHECK (HERE)
-  const isProfileComplete =
-    student.fullName &&
-    student.dob &&
-    student.passportNumber &&
-    student.education?.degree &&
-    student.phone;
+    const {
+      personalInfo,
+      passportInfo,
+      backgroundInfo,
+      emergencyContact,
+    } = req.body;
 
-  student.profileCompleted = Boolean(isProfileComplete);
+    // 1️⃣ SAVE PROFILE DATA
+    student.personalInfo = personalInfo;
+    student.passportInfo = passportInfo;
+    student.backgroundInfo = backgroundInfo;
+    student.emergencyContact = emergencyContact;
 
-  await student.save();
+    // 2️⃣ PROFILE COMPLETION CHECK
+    const isProfileComplete =
+      personalInfo?.firstName &&
+      personalInfo?.lastName &&
+      personalInfo?.gender &&
+      personalInfo?.dob &&
+      passportInfo?.passportNo &&
+      passportInfo?.expiryDate &&
+      emergencyContact?.name &&
+      emergencyContact?.phone;
 
-  // NOTIFICATION (HERE)
-  await Notification.create({
-    role: "docExecutive",
-    user: student.assignedTo,
-    message: `Student ${student.name} updated Personal Information`,
-    student: student._id,
-    section: "Personal Info",
-  });
+    student.profileCompleted = Boolean(isProfileComplete);
+    student.profileCompletionPercent = isProfileComplete ? 40 : 20;
 
+    // ✅ SAVE FIRST
+    await student.save();
 
-  res.json({
-    message: "Profile updated",
-    profileCompleted: student.profileCompleted,
-  });
+    // 3️⃣ SEND NOTIFICATION ONLY ON FIRST COMPLETION
+    if (student.profileCompleted && !student.profileNotified) {
+
+      // 🔔 Executive notification
+      if (student.assignedTo) {
+        await Notification.create({
+          title: "Student Profile Completed",
+          message: `Student ${student.name} has completed their profile`,
+          forRole: "doc-executive",
+          userId: student.assignedTo,
+          studentId: student._id,
+        });
+      }
+
+      // 🔔 Admin notification
+      await Notification.create({
+        title: "Student Profile Completed",
+        message: `Student ${student.name} has completed their profile`,
+        forRole: "admin",
+        studentId: student._id,
+      });
+
+      student.profileNotified = true;
+      await student.save(); // save flag
+    }
+
+    // ✅ ALWAYS RESPOND
+    return res.json({
+      message: "Profile updated successfully",
+      profileCompleted: student.profileCompleted,
+      profileCompletionPercent: student.profileCompletionPercent,
+    });
+
+  } catch (err) {
+    console.error("UPDATE PROFILE ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
+
+// Student profile status
 export const getProfileStatus = async (req, res) => {
   const student = await Student.findById(req.user.id).select("profileCompleted");
 
@@ -254,3 +303,41 @@ export const getProfileStatus = async (req, res) => {
   });
 };
 
+export const getStudentProfile = async (req, res) => {
+  const student = await Student.findById(req.user.id).select(
+    "personalInfo passportInfo backgroundInfo emergencyContact profileCompleted"
+  );
+
+  if (!student) {
+    return res.status(404).json({ message: "Student not found" });
+  }
+
+  res.json(student);
+};
+
+// GET student profile by ID (EXEC + ADMIN)
+export const getStudentProfileById = async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id)
+      .select("-password");
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    res.json(student);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+export const getStudentById = async (req, res) => {
+  const student = await Student.findById(req.params.id).select("-password");
+
+  if (!student) {
+    return res.status(404).json({ message: "Student not found" });
+  }
+
+  res.json(student);
+};
