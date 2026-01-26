@@ -138,11 +138,55 @@ const studentSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    profileCompleted: {
-      type: Boolean,
-      default: false
+    academicInfo: {
+      highestQualification: { type: String, default: "" },
+      courseName: { type: String, default: "" },
+      institution: { type: String, default: "" },
+      universityBoard: { type: String, default: "" },
+      yearOfPassing: { type: String, default: "" },
+      gradingSystem: { type: String, default: "CGPA" },
+      score: { type: String, default: "" }
     }
     ,
+    workExperience: {
+      hasExperience: { type: Boolean, default: false },
+      totalYears: { type: Number, default: 0 },
+      field: { type: String, default: "" },
+      lastEmployer: { type: String, default: "" }
+    },
+
+    studyPreferences: {
+      intendedCountry: { type: String, default: "" },
+      intendedCourse: { type: String, default: "" },
+      intakeYear: { type: String, default: "" },
+      intakeSession: { type: String, default: "" }
+    },
+
+    languageTest: {
+      testType: { type: String, default: "NONE" },
+      overallScore: { type: String, default: "" },
+      testStatus: { type: String, default: "NOT_TAKEN" }
+    },
+
+    educationGap: {
+      hasGap: { type: Boolean, default: false },
+      gapYears: { type: Number, default: 0 },
+      reason: { type: String, default: "" }
+    },
+
+    financialInfo: {
+      fundingSource: { type: String, default: "" },
+      loanPlanned: { type: Boolean, default: false },
+      approxBudget: { type: String, default: "" }
+    },
+
+    phase2Status: {
+      completed: { type: Boolean, default: false },
+      submittedAt: Date,
+      verified: { type: Boolean, default: false },
+      remarks: String
+    }
+
   },
   { timestamps: true }
 );

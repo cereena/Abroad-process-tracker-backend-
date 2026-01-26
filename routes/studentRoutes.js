@@ -9,7 +9,9 @@ import {
   updateStudentProfile,
   getStudentProfile,
   getStudentProfileById,
-  getStudentById
+  getStudentById,
+  updateProfilePhase2,
+  getMyProfilePhase2
 } from "../controllers/studentController.js";
 
 import { protect } from "../middleware/auth.js";
@@ -43,5 +45,9 @@ router.get("/students/:id/profile", protect(["docExecutive", "admin"]),getStuden
 
 router.get("/:id", protect(["docExecutive", "admin"]),getStudentById);
 
+// student.routes.js
+router.put("/profile/phase2", protect(["student"]),updateProfilePhase2);
+
+router.get("/profile/phase2",protect(["student"]),getMyProfilePhase2);
 
 export default router;

@@ -341,3 +341,61 @@ export const getStudentById = async (req, res) => {
 
   res.json(student);
 };
+
+export const updateProfilePhase2 = async (req, res) => {
+  const student = await Student.findById(req.user.id);
+
+  if (!student.profileCompleted) {
+    return res.status(400).json({
+      message: "Complete Profile Phase 1 first"
+    });
+  }
+
+  // update phase 2 fields
+  student.academicInfo = req.body.academicInfo;
+  student.workExperience = req.body.workExperience;
+  student.studyPreferences = req.body.studyPreferences;
+  student.languageTest = req.body.languageTest;
+  student.educationGap = req.body.educationGap;
+  student.financialInfo = req.body.financialInfo;
+
+  student.phase2Status.completed = true;
+  student.phase2Status.submittedAt = new Date();
+
+  await student.save();   // ✅ SAVE FIRST
+
+  // ✅ THEN notify
+  if (student.assignedTo) {
+    await Notification.create({
+      user: student.assignedTo,
+      role: "doc",
+      type: "PHASE2_SUBMITTED",
+      studentId: student._id,
+      message: `${student.personalInfo.firstName} completed Profile Phase 2`
+    });
+  }
+
+  res.json({ message: "Phase 2 submitted successfully" });
+};
+
+export const getMyProfilePhase2 = async (req, res) => {
+  try {
+    const student = await Student.findById(req.user.id);
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    res.json({
+      academicInfo: student.academicInfo,
+      workExperience: student.workExperience,
+      studyPreferences: student.studyPreferences,
+      languageTest: student.languageTest,
+      educationGap: student.educationGap,
+      financialInfo: student.financialInfo,
+      phase2Status: student.phase2Status
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch Phase 2 profile" });
+  }
+};

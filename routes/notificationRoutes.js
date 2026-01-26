@@ -18,7 +18,7 @@ router.get("/admin", getAdminNotifications);
 
 router.get(
   "/doc-executive",
-  protect(["doc-executive"]),
+ protect("docExecutive", "admin"),
   getDocExecutiveNotifications
 );
 
