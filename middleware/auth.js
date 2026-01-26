@@ -37,6 +37,11 @@ export const protect = (roles = []) => {
         role: decoded.role,
       };
 
+      if (!roles.includes(decoded.role)) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+
       // 4️ Role authorization (if required)
       if (roles.length > 0 && !roles.includes(req.user.role)) {
         return res.status(403).json({
