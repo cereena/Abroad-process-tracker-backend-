@@ -146,8 +146,7 @@ const studentSchema = new mongoose.Schema(
       yearOfPassing: { type: String, default: "" },
       gradingSystem: { type: String, default: "CGPA" },
       score: { type: String, default: "" }
-    }
-    ,
+    },
     workExperience: {
       hasExperience: { type: Boolean, default: false },
       totalYears: { type: Number, default: 0 },
