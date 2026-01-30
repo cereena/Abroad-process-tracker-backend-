@@ -140,45 +140,80 @@ const studentSchema = new mongoose.Schema(
     },
     academicInfo: {
       highestQualification: { type: String, default: "" },
-      courseName: { type: String, default: "" },
-      institution: { type: String, default: "" },
-      universityBoard: { type: String, default: "" },
-      yearOfPassing: { type: String, default: "" },
-      gradingSystem: { type: String, default: "CGPA" },
-      score: { type: String, default: "" }
+
+      tenth: {
+        board: String,
+        specialization: String,
+        marks: String,
+        passoutYear: String
+      },
+
+      twelfth: {
+        board: String,
+        specialization: String,
+        marks: String,
+        passoutYear: String
+      },
+
+      diploma: {
+        institution: String,
+        course: String,
+        passoutYear: String
+      },
+
+      degree: {
+        university: String,
+        course: String,
+        cgpa: String,
+        passoutYear: String
+      },
+
+      pg: {
+        university: String,
+        course: String,
+        cgpa: String,
+        passoutYear: String
+      }
     },
+
     workExperience: {
-      hasExperience: { type: Boolean, default: false },
-      totalYears: { type: Number, default: 0 },
-      field: { type: String, default: "" },
-      lastEmployer: { type: String, default: "" }
+      hasExperience: { type: Boolean, default: null },
+      company: String,
+      role: String,
+      years: Number
     },
 
-    studyPreferences: {
-      intendedCountry: { type: String, default: "" },
-      intendedCourse: { type: String, default: "" },
-      intakeYear: { type: String, default: "" },
-      intakeSession: { type: String, default: "" }
+    preferences: {
+      countries: [String],
+      course: String,
+      university: String,
+      intake: String,
+      englishTest: String,
+      score: String
     },
 
-    languageTest: {
-      testType: { type: String, default: "NONE" },
-      overallScore: { type: String, default: "" },
-      testStatus: { type: String, default: "NOT_TAKEN" }
-    },
+    sponsorship: {
+      type: {
+        type: String, // loan | sponsor
+      },
 
-    educationGap: {
-      hasGap: { type: Boolean, default: false },
-      gapYears: { type: Number, default: 0 },
-      reason: { type: String, default: "" }
-    },
+      // Loan fields
+      loanType: String,        // collateral | non-collateral
+      bankName: String,
+      loanAmount: String,
 
-    financialInfo: {
-      fundingSource: { type: String, default: "" },
-      loanPlanned: { type: Boolean, default: false },
-      approxBudget: { type: String, default: "" }
-    },
+      // Sponsor fields
+      sponsorName: String,
+      relationship: String,
+      sponsorOccupation: String,
+      sponsorCountry: String,
 
+      isAbroad: Boolean,
+      hasPR: Boolean,
+      filesITR: Boolean,
+      goodTransactions: Boolean,
+    },
+    
     phase2Status: {
       completed: { type: Boolean, default: false },
       submittedAt: Date,

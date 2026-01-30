@@ -6,7 +6,7 @@ import { generateEnquiryId } from "../utils/generateEnquiryId.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Notification from "../models/Notification.js";
-
+import { calculateProfileCompletion } from "../utils/calculateProfileCompletion.js";
 
 
 // admin doing this student creation
@@ -135,7 +135,6 @@ export const getMyStudents = async (req, res) => {
   }
 };
 
-
 // student registers with their enquiryid
 export const registerStudent = async (req, res) => {
   try {
@@ -215,72 +214,58 @@ export const loginStudent = async (req, res) => {
   }
 };
 
-// UPDATE STUDENT PROFILE (PHASE 1)
 export const updateStudentProfile = async (req, res) => {
   try {
     const student = await Student.findById(req.user.id);
-
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    const {
-      personalInfo,
-      passportInfo,
-      backgroundInfo,
-      emergencyContact,
-    } = req.body;
+    const profile = req.body;
 
-    // 1️⃣ SAVE PROFILE DATA
-    student.personalInfo = personalInfo;
-    student.passportInfo = passportInfo;
-    student.backgroundInfo = backgroundInfo;
-    student.emergencyContact = emergencyContact;
+    // SAFE MERGE (never erase old data)
+    student.personalInfo = profile.personalInfo ?? student.personalInfo;
+    student.passportInfo = profile.passportInfo ?? student.passportInfo;
+    student.backgroundInfo = profile.backgroundInfo ?? student.backgroundInfo;
+    student.emergencyContact = profile.emergencyContact ?? student.emergencyContact;
+    student.academicInfo = profile.academicInfo ?? student.academicInfo;
+    student.workExperience = profile.workExperience ?? student.workExperience;
+    student.preferences = profile.preferences ?? student.preferences;
+    student.sponsorship = profile.sponsorship ?? student.sponsorship;
+    student.currentAddress = req.body.currentAddress ?? student.currentAddress;
+    student.permanentAddress = req.body.permanentAddress ?? student.permanentAddress;
 
-    // 2️⃣ PROFILE COMPLETION CHECK
-    const isProfileComplete =
-      personalInfo?.firstName &&
-      personalInfo?.lastName &&
-      personalInfo?.gender &&
-      personalInfo?.dob &&
-      passportInfo?.passportNo &&
-      passportInfo?.expiryDate &&
-      emergencyContact?.name &&
-      emergencyContact?.phone;
+    // SINGLE SOURCE OF TRUTH
+    const percent = calculateProfileCompletion(student);
+    student.profileCompletionPercent = percent;
+    student.profileCompleted = percent === 100;
 
-    student.profileCompleted = Boolean(isProfileComplete);
-    student.profileCompletionPercent = isProfileComplete ? 40 : 20;
-
-    // ✅ SAVE FIRST
     await student.save();
 
-    // 3️⃣ SEND NOTIFICATION ONLY ON FIRST COMPLETION
+    //  NOTIFY ONLY ON FIRST FULL COMPLETION
     if (student.profileCompleted && !student.profileNotified) {
 
-      // 🔔 Executive notification
       if (student.assignedTo) {
         await Notification.create({
           title: "Student Profile Completed",
-          message: `Student ${student.name} has completed their profile`,
+          message: `Student ${student.personalInfo?.firstName} has completed their profile`,
           forRole: "doc-executive",
           userId: student.assignedTo,
           studentId: student._id,
         });
       }
 
-      // 🔔 Admin notification
       await Notification.create({
         title: "Student Profile Completed",
-        message: `Student ${student.name} has completed their profile`,
+        message: `Student ${student.personalInfo?.firstName} has completed their profile`,
         forRole: "admin",
         studentId: student._id,
       });
 
       student.profileNotified = true;
-      await student.save(); // save flag
+      await student.save();
     }
 
-    // ✅ ALWAYS RESPOND
     return res.json({
       message: "Profile updated successfully",
       profileCompleted: student.profileCompleted,
@@ -292,7 +277,6 @@ export const updateStudentProfile = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 // Student profile status
 export const getProfileStatus = async (req, res) => {
@@ -330,7 +314,6 @@ export const getStudentProfileById = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 export const getStudentById = async (req, res) => {
   const student = await Student.findById(req.params.id).select("-password");
