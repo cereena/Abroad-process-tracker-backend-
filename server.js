@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 
+dotenv.config();
 // Import Routes (Ensure all have .js extension)
 import adminRoutes from "./routes/adminRoutes.js";
 import progressRoutes from "./routes/progressRoutes.js";
@@ -16,7 +17,7 @@ import leadRoutes from "./routes/leadRoutes.js";
 import docExecutiveRoutes from "./routes/docExecutiveRoutes.js";
 
 
-dotenv.config();
+
 
 const app = express();
 

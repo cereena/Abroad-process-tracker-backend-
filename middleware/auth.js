@@ -1,17 +1,16 @@
 import jwt from "jsonwebtoken";
 
 export const protect = (roles = []) => {
-  // normalize roles → always array
-  if (typeof roles === "string") {
-    roles = [roles];
-  }
+  if (typeof roles === "string") roles = [roles];
 
   return (req, res, next) => {
+    console.log("HEADERS RECEIVED:", req.headers);
+    console.log("PROTECT JWT_SECRET:", process.env.JWT_SECRET);
+
     try {
       const authHeader = req.headers.authorization;
 
-      // 1️ Check token presence
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
         return res.status(401).json({
           success: false,
           message: "Authorization token missing",
@@ -19,30 +18,13 @@ export const protect = (roles = []) => {
       }
 
       const token = authHeader.split(" ")[1];
-
-      // 2️ Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // decoded must contain id & role
-      if (!decoded?.id || !decoded?.role) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid token payload",
-        });
-      }
-
-      // 3️ Attach user to request
       req.user = {
         id: decoded.id,
         role: decoded.role,
       };
 
-      if (!roles.includes(decoded.role)) {
-        return res.status(403).json({ message: "Forbidden" });
-      }
-
-
-      // 4️ Role authorization (if required)
       if (roles.length > 0 && !roles.includes(req.user.role)) {
         return res.status(403).json({
           success: false,
@@ -52,9 +34,10 @@ export const protect = (roles = []) => {
 
       next();
     } catch (err) {
+      console.error("JWT VERIFY ERROR:", err.message);
       return res.status(401).json({
         success: false,
-        message: "Token expired or invalid",
+        message: err.message,
       });
     }
   };

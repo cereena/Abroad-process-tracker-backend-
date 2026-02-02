@@ -215,6 +215,8 @@ export const loginStudent = async (req, res) => {
 };
 
 export const updateStudentProfile = async (req, res) => {
+  console.log("LOGIN JWT_SECRET:", process.env.JWT_SECRET);
+
   try {
     const student = await Student.findById(req.user.id);
     if (!student) {
@@ -288,15 +290,19 @@ export const getProfileStatus = async (req, res) => {
 };
 
 export const getStudentProfile = async (req, res) => {
-  const student = await Student.findById(req.user.id).select(
-    "personalInfo passportInfo backgroundInfo emergencyContact profileCompleted"
-  );
+  try {
+    const student = await Student.findById(req.user.id).select(
+      "personalInfo passportInfo backgroundInfo emergencyContact academicInfo workExperience preferences sponsorship profileCompleted profileCompletionPercent"
+    );
 
-  if (!student) {
-    return res.status(404).json({ message: "Student not found" });
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    res.json(student);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
-
-  res.json(student);
 };
 
 // GET student profile by ID (EXEC + ADMIN)
