@@ -1,9 +1,9 @@
+import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 
-dotenv.config();
+dotenv.config({ path: "./.env" });
 // Import Routes (Ensure all have .js extension)
 import adminRoutes from "./routes/adminRoutes.js";
 import progressRoutes from "./routes/progressRoutes.js";
@@ -15,8 +15,8 @@ import commissionRoutes from "./routes/commissionRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import leadRoutes from "./routes/leadRoutes.js";
 import docExecutiveRoutes from "./routes/docExecutiveRoutes.js";
-
-
+import documentRoutes from "./routes/documentRoutes.js";
+import cloudinary from "./config/cloudinary.js"; 
 
 
 const app = express();
@@ -42,6 +42,7 @@ app.use("/api/commissions", commissionRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/doc-executives", docExecutiveRoutes);
+app.use("/api/documents", documentRoutes);
 
 
 
