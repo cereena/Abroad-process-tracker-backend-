@@ -25,7 +25,7 @@ router.post("/", protect(["admin"]), createStudent);
 router.get("/all", protect(["admin"]), getAllStudents);
 
 // Documentation Executive fetches their students
-router.get("/my", protect(["docExecutive"]), getMyStudents);
+router.get("/my", protect(["DocExecutive"]), getMyStudents);
 
 // Student registration
 router.post("/register", registerStudent);
@@ -41,9 +41,9 @@ router.put("/profile", protect(["student"]), updateStudentProfile);
 
 router.get("/profile", protect(["student"]), getStudentProfile);
 
-router.get("/students/:id/profile", protect(["docExecutive", "admin"]),getStudentProfileById);
+router.get("/students/:id/profile", protect(["DocExecutive", "admin"]),getStudentProfileById);
 
-router.get("/:id", protect(["docExecutive", "admin"]),getStudentById);
+router.get("/:id", protect(["DocExecutive", "admin"]),getStudentById);
 
 // student.routes.js
 router.put("/profile/phase2", protect(["student"]),updateProfilePhase2);

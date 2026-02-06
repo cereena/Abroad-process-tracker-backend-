@@ -1,4 +1,3 @@
-
 import Student from "../models/student.js";
 import Lead from "../models/Lead.js";
 import Enquiry from "../models/Enquiry.js";
@@ -251,7 +250,7 @@ export const updateStudentProfile = async (req, res) => {
         await Notification.create({
           title: "Student Profile Completed",
           message: `Student ${student.personalInfo?.firstName} has completed their profile`,
-          forRole: "doc-executive",
+          forRole: "DocExecutive",
           userId: student.assignedTo,
           studentId: student._id,
         });
@@ -351,13 +350,13 @@ export const updateProfilePhase2 = async (req, res) => {
   student.phase2Status.completed = true;
   student.phase2Status.submittedAt = new Date();
 
-  await student.save();   // ✅ SAVE FIRST
+  await student.save(); 
 
   // ✅ THEN notify
   if (student.assignedTo) {
     await Notification.create({
       user: student.assignedTo,
-      role: "doc",
+      role: "DocExecutive",
       type: "PHASE2_SUBMITTED",
       studentId: student._id,
       message: `${student.personalInfo.firstName} completed Profile Phase 2`

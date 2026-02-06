@@ -13,5 +13,4 @@ console.log("Cloudinary config:", {
   api_secret: process.env.CLOUD_API_SECRET ? "SET" : "MISSING",
 });
 
-
 export default cloudinary;

@@ -17,7 +17,7 @@ export const loginDoc = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: doc._id, role: "docExecutive" },
+      { id: doc._id, role: "DocExecutive" },
       process.env.JWT_SECRET,
       { expiresIn: "30d" }
     );

@@ -42,7 +42,7 @@ export const getAdminNotifications = async (req, res) => {
 export const getDocExecutiveNotifications = async (req, res) => {
   try {
     const notes = await Notification.find({
-      forRole: "doc-executive",
+      forRole: "DocExecutive",
       userId: req.user.id,
     })
       .populate("studentId", "name email studentEnquiryCode")

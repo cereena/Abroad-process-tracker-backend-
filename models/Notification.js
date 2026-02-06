@@ -13,7 +13,7 @@ const notificationSchema = new mongoose.Schema({
 
   forRole: {
     type: String,
-    enum: ["admin", "doc-executive"],
+    enum: ["admin", "DocExecutive"],
     required: true,
   },
 

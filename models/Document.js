@@ -8,6 +8,12 @@ const documentSchema = new mongoose.Schema(
       required: true,
     },
 
+    docExecutive: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "DocExecutive",
+      required: true,
+    },
+
     name: String,          // "10th Certificate"
     type: String,          // "before" | "after"
     fileUrl: String,       // Cloud URL
