@@ -53,3 +53,17 @@ export const getDocExecutiveNotifications = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const markAsRead = async (req, res) => {
+  try {
+    await Notification.findByIdAndUpdate(req.params.id, {
+      isRead: true,
+    });
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("MARK READ ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

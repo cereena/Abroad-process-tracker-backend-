@@ -46,15 +46,43 @@ export const uploadDocument = async (req, res) => {
       status: "pending",
     });
 
-    // 4. Notify executive
-    await Notification.create({
-      title: "New Document Uploaded",
-      message: `${student.name} uploaded ${req.body.name}`,
-      forRole: "DocExecutive",
+    const existing = await Notification.findOne({
       userId: docExecId,
       studentId: studentId,
-      documentId: document._id,
+      type: "document_upload",
+      isRead: false,
     });
+
+    if (!existing) {
+      await Notification.findOneAndUpdate(
+        {
+          studentId: student._id,
+          forRole: "DocExecutive",
+          title: "New Document Uploaded",
+        },
+        {
+          title: "New Document Uploaded",
+          message: `${student.name} uploaded new documents`,
+          studentId: student._id,
+          forRole: "DocExecutive",
+          isRead: false,
+        },
+        { upsert: true, new: true }
+      );
+
+    }
+
+    // 4. Notify executive
+    await Notification.create({
+      title: "Documents Uploaded",
+      message: `${student.name} uploaded documents for verification`,
+      forRole: "DocExecutive",
+      userId: docExecId,
+
+      type: "document_upload",
+      studentId: studentId,
+    });
+
 
     res.status(201).json({
       success: true,
@@ -116,23 +144,33 @@ export const updateDocumentStatus = async (req, res) => {
 
     doc.status = status;
 
-    if (status === "rejected") {
-      doc.rejectionReason = reason;
-    }
+    doc.rejectReason = status === "rejected" ? reason : "";
 
     await doc.save();
 
     // Notify student
+    let message = "";
+
+    if (status === "verified") {
+      message = "Your document has been verified ✅";
+    } else {
+      message = `Your document was rejected ❌ : ${reason}`;
+    }
+
     await Notification.create({
       title: "Document Status Updated",
-      message: `Your document ${doc.name} is ${status}`,
+      message,
       forRole: "student",
       userId: doc.student,
       studentId: doc.student,
       documentId: doc._id,
     });
 
-    res.json({ message: "Status updated" });
+    res.json({
+      success: true,
+      message: "Status updated",
+      document: doc,
+    });
 
   } catch (err) {
     console.error("STATUS ERROR:", err);
@@ -140,3 +178,27 @@ export const updateDocumentStatus = async (req, res) => {
   }
 };
 
+/**
+ * Get assigned documents (DocExecutive)
+ */
+export const getAssignedDocuments = async (req, res) => {
+  try {
+    const students = await Student.find({
+      assignedTo: req.user.id, // IMPORTANT: matches your schema
+    }).select("_id");
+
+    const studentIds = students.map((s) => s._id);
+
+    const documents = await Document.find({
+      student: { $in: studentIds },
+    })
+      .populate("student", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json(documents);
+
+  } catch (err) {
+    console.error("ASSIGNED DOC ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

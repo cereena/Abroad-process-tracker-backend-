@@ -1,5 +1,5 @@
 import express from "express";
-import { uploadDocument, getMyDocuments, getStudentDocuments, updateDocumentStatus } from "../controllers/documentController.js";
+import { uploadDocument, getMyDocuments, getStudentDocuments, updateDocumentStatus, getAssignedDocuments } from "../controllers/documentController.js";
 import { protect } from "../middleware/auth.js";
 import upload from "../middleware/uploadMiddleware.js";
 
@@ -26,6 +26,12 @@ router.get(
 );
 
 router.get(
+  "/assigned",
+  protect(["DocExecutive"]),
+  getAssignedDocuments
+);
+
+router.get(
   "/student/:studentId",
   protect(["DocExecutive"]),
   getStudentDocuments
@@ -36,5 +42,9 @@ router.put(
   protect(["DocExecutive"]),
   updateDocumentStatus
 );
+
+
+
+
 
 export default router;

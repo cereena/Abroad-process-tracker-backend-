@@ -3,7 +3,8 @@ import {
   createNotification,
   getAllNotifications,
   getAdminNotifications,
-  getDocExecutiveNotifications
+  getDocExecutiveNotifications,
+  markAsRead
 } from "../controllers/notificationController.js";
 import { protect } from "../middleware/auth.js";
 
@@ -21,5 +22,8 @@ router.get(
  protect("DocExecutive", "admin"),
   getDocExecutiveNotifications
 );
+
+router.put("/notifications/:id/read", protect(["DocExecutive"]), markAsRead);
+
 
 export default router;
