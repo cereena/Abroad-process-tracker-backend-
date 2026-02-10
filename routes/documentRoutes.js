@@ -32,7 +32,7 @@ router.get(
 );
 
 router.get(
-  "/student/:studentId",
+  "/student/:id",
   protect(["DocExecutive"]),
   getStudentDocuments
 );
