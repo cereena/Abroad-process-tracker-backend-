@@ -23,8 +23,8 @@ const docExecutiveSchema = new mongoose.Schema({
 
   role: {
     type: String,
-    default: "DocExecutive"
+    default: "docexecutive"
   }
 }, { timestamps: true });
 
-export default mongoose.model("DocExecutive", docExecutiveSchema);
+export default mongoose.model("docexecutive", docExecutiveSchema);

@@ -10,7 +10,7 @@ const applicationSchema = new mongoose.Schema(
 
     executiveId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "DocExecutive",
+      ref: "docexecutive",
       required: true,
     },
 

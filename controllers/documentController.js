@@ -62,7 +62,7 @@ export const uploadDocument = async (req, res) => {
     await Notification.create({
       title: "New Document Uploaded",
       message: `${student.name} uploaded ${name} for verification`,
-      forRole: "DocExecutive",
+      forRole: "docexecutive",
       userId: student.assignedTo,
       type: "document_upload",
       studentId: student._id,

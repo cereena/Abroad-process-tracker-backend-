@@ -19,11 +19,11 @@ router.get("/admin", getAdminNotifications);
 
 router.get(
   "/doc-executive",
- protect(["DocExecutive", "admin"]),
+ protect(["docexecutive", "admin"]),
   getDocExecutiveNotifications
 );
 
-router.put("/notifications/:id/read", protect(["DocExecutive"]), markAsRead);
+router.put("/:id/read", protect(["docexecutive"]), markAsRead);
 
 
 export default router;

@@ -34,7 +34,7 @@ const studentSchema = new mongoose.Schema(
     // ASSIGNMENT 
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "DocExecutive",
+      ref: "docexecutive",
     },
 
     //  PROFILE STATUS 

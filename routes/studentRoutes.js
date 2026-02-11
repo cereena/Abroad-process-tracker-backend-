@@ -12,7 +12,7 @@ router.post("/", protect(["admin"]), createStudent);
 // Admin fetches all students
 router.get("/all", protect(["admin"]), getAllStudents);
 // Documentation Executive fetches their students
-router.get("/my", protect(["DocExecutive"]), getMyStudents);
+router.get("/my", protect(["docexecutive"]), getMyStudents);
 // Student registration
 router.post("/register", registerStudent);
 // Student login
@@ -22,8 +22,8 @@ router.get("/profile-status", protect(["student"]), getProfileStatus);
 // Student updates profile ✅ FIXED
 router.put("/profile", protect(["student"]), updateStudentProfile);
 router.get("/profile", protect(["student"]), getStudentProfile);
-router.get("/students/:id/profile", protect(["DocExecutive", "admin"]),getStudentProfileById);
-router.get("/:id", protect(["DocExecutive", "admin"]),getStudentById);
+router.get("/students/:id/profile", protect(["docexecutive", "admin"]),getStudentProfileById);
+router.get("/:id", protect(["docexecutive", "admin"]),getStudentById);
 // student.routes.js
 router.put("/profile/phase2", protect(["student"]),updateProfilePhase2);
 router.get("/profile/phase2",protect(["student"]),getMyProfilePhase2);

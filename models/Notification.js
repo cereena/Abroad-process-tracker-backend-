@@ -13,13 +13,13 @@ const notificationSchema = new mongoose.Schema({
 
   forRole: {
     type: String,
-    enum: ["admin", "DocExecutive"],
+    enum: ["admin", "docexecutive"],
     required: true,
   },
 
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "DocExecutive",
+    ref: "docexecutive",
   },
 
   studentId: {

@@ -27,19 +27,19 @@ router.get(
 
 router.get(
   "/assigned",
-  protect(["DocExecutive"]),
+  protect(["docexecutive"]),
   getAssignedDocuments
 );
 
 router.get(
   "/student/:id",
-  protect(["DocExecutive"]),
+  protect(["docexecutive"]),
   getStudentDocuments
 );
 
 router.put(
   "/:id/status",
-  protect(["DocExecutive"]),
+  protect(["docexecutive"]),
   updateDocumentStatus
 );
 

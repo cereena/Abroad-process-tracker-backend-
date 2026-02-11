@@ -10,7 +10,7 @@ const documentSchema = new mongoose.Schema(
 
     DocExecutive: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "DocExecutive",
+      ref: "docexecutive",
       required: true,
     },
 

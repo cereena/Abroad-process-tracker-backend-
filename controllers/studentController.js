@@ -250,7 +250,7 @@ export const updateStudentProfile = async (req, res) => {
         await Notification.create({
           title: "Student Profile Completed",
           message: `Student ${student.personalInfo?.firstName} has completed their profile`,
-          forRole: "DocExecutive",
+          forRole: "docexecutive",
           userId: student.assignedTo,
           studentId: student._id,
         });
@@ -356,7 +356,7 @@ export const updateProfilePhase2 = async (req, res) => {
   if (student.assignedTo) {
     await Notification.create({
       user: student.assignedTo,
-      role: "DocExecutive",
+      role: "docexecutive",
       type: "PHASE2_SUBMITTED",
       studentId: student._id,
       message: `${student.personalInfo.firstName} completed Profile Phase 2`

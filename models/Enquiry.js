@@ -14,7 +14,7 @@ const enquirySchema = new mongoose.Schema({
 
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "DocExecutive",
+    ref: "docexecutive",
   },
    convertedToLead: {
     type: Boolean,

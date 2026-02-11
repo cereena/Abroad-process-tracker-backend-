@@ -42,7 +42,7 @@ export const getAdminNotifications = async (req, res) => {
 export const getDocExecutiveNotifications = async (req, res) => {
   try {
     const notes = await Notification.find({
-      forRole: "DocExecutive",
+      forRole: req.user.role,
       userId: req.user.id,
     })
       .populate("studentId", "name email studentEnquiryCode")
@@ -53,6 +53,7 @@ export const getDocExecutiveNotifications = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 export const markAsRead = async (req, res) => {
   try {
