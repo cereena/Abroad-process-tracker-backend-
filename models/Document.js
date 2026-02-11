@@ -4,11 +4,11 @@ const documentSchema = new mongoose.Schema(
   {
     student: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Student",
+      ref: "student",
       required: true,
     },
 
-    docExecutive: {
+    DocExecutive: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "DocExecutive",
       required: true,

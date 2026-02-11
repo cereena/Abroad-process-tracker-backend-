@@ -43,8 +43,4 @@ router.put(
   updateDocumentStatus
 );
 
-
-
-
-
 export default router;

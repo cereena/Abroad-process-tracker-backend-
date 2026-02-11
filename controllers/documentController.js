@@ -8,12 +8,16 @@ import Notification from "../models/Notification.js";
  */
 export const uploadDocument = async (req, res) => {
   try {
-    console.log("FILE:", req.file);
-    console.log("BODY:", req.body);
 
-    if (!req.file) {
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        message: "Only students can upload documents",
+      });
+    }
+
+    if (!req.file?.path) {
       return res.status(400).json({
-        message: "No file received",
+        message: "File upload failed",
       });
     }
 
@@ -25,47 +29,47 @@ export const uploadDocument = async (req, res) => {
       });
     }
 
-    const studentId = req.user.id;
-
-    // 1. Find student
-    const student = await Student.findById(studentId);
+    // ✅ Find student
+    const student = await Student.findById(req.user.id);
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    // 2. Get assigned executive
-    const docExecId = student.assignedTo;
-
-    if (!docExecId) {
+    if (!student.assignedTo) {
       return res.status(400).json({
-        message: "No documentation executive assigned",
+        message: "No executive assigned",
       });
     }
 
-    // 3. Create document in DB
+    if (!req.file.path.startsWith("http")) {
+      return res.status(400).json({
+        message: "Invalid file URL",
+      });
+    }
+
+    // ✅ Create document
     const document = await Document.create({
-      student: studentId,
-      docExecutive: docExecId, 
+      student: student._id,
+      DocExecutive: student.assignedTo,
       name,
       type,
       fileUrl: req.file.path,
       status: "pending",
     });
 
-    // 4. Notify executive
+    // ✅ Notify executive
     await Notification.create({
       title: "New Document Uploaded",
       message: `${student.name} uploaded ${name} for verification`,
       forRole: "DocExecutive",
-      userId: docExecId,
+      userId: student.assignedTo,
       type: "document_upload",
-      studentId: studentId,
+      studentId: student._id,
       documentId: document._id,
-      isRead: false,
     });
 
-    // 5. Send response ONCE
+    // ✅ Send response
     res.status(201).json({
       success: true,
       message: "Document uploaded successfully",
@@ -73,14 +77,14 @@ export const uploadDocument = async (req, res) => {
     });
 
   } catch (err) {
-  console.error("UPLOAD ERROR FULL:", err.message);
-  console.error(err.stack);
 
-  res.status(500).json({
-    message: err.message,
-  });
-}
+    console.error("UPLOAD ERROR FULL:", err.message);
+    console.error(err.stack);
 
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
 };
 
 /**
@@ -152,7 +156,7 @@ export const updateDocumentStatus = async (req, res) => {
     await Notification.create({
       title: "Document Status Updated",
       message,
-      forRole: "Student",
+      forRole: "student",
       userId: doc.student,
       studentId: doc.student,
       documentId: doc._id,

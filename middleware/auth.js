@@ -22,7 +22,7 @@ export const protect = (roles = []) => {
 
       req.user = {
         id: decoded.id,
-        role: decoded.role,
+        role: decoded.role.toLowerCase()
       };
 
       if (roles.length > 0 && !roles.includes(req.user.role)) {

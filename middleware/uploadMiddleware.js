@@ -15,7 +15,7 @@ const storage = new CloudinaryStorage({
       resource_type: "auto",
 
       // REMOVE format (let cloudinary decide)
-      // format: undefined ❌
+      // format: undefined 
 
       public_id: `doc_${Date.now()}_${Math.round(
         Math.random() * 1e9
