@@ -17,6 +17,8 @@ import leadRoutes from "./routes/leadRoutes.js";
 import docExecutiveRoutes from "./routes/docExecutiveRoutes.js";
 import documentRoutes from "./routes/documentRoutes.js";
 import cloudinary from "./config/cloudinary.js"; 
+import universityRoutes from "./routes/universityRoutes.js";
+
 
 
 const app = express();
@@ -35,6 +37,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/progress", progressRoutes);
 app.use("/api/enquiries", enquiryRoutes);
 app.use("/api/student", studentRoutes);
+app.use("/api/universities", universityRoutes);
 console.log("Student routes loaded");
 app.use("/api/doc", docAuthRoutes);
 app.use("/api/applications", applicationRoutes);
