@@ -101,4 +101,66 @@ export const getUniversities = async (req, res) => {
     }
 };
 
+export const getOneUniversity = async (req, res) => {
+  try {
+    const uni = await University.findById(req.params.id);
+
+    if (!uni) {
+      return res.status(404).json({
+        success: false,
+        message: "University not found",
+      });
+    }
+
+    res.json(uni);
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+/* UPDATE */
+export const updateUniversity = async (req, res) => {
+  try {
+    const uni = await University.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+
+    if (!uni) {
+      return res.status(404).json({
+        message: "University not found",
+      });
+    }
+
+    res.json(uni);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/* DELETE */
+export const deleteUniversity = async (req, res) => {
+  try {
+    const uni = await University.findByIdAndDelete(req.params.id);
+
+    if (!uni) {
+      return res.status(404).json({
+        message: "University not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "University deleted",
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
