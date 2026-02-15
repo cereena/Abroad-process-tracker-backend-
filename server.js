@@ -18,7 +18,7 @@ import docExecutiveRoutes from "./routes/docExecutiveRoutes.js";
 import documentRoutes from "./routes/documentRoutes.js";
 import cloudinary from "./config/cloudinary.js"; 
 import universityRoutes from "./routes/universityRoutes.js";
-
+import adminUniversityRoutes from "./routes/adminUniversityRoutes.js";
 
 
 const app = express();
@@ -46,7 +46,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/doc-executives", docExecutiveRoutes);
 app.use("/api/documents", documentRoutes);
-
+app.use("/api/admin/universities", adminUniversityRoutes);
 
 
 
