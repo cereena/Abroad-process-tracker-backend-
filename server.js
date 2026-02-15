@@ -37,8 +37,6 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/progress", progressRoutes);
 app.use("/api/enquiries", enquiryRoutes);
 app.use("/api/student", studentRoutes);
-app.use("/api/universities", universityRoutes);
-console.log("Student routes loaded");
 app.use("/api/doc", docAuthRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/commissions", commissionRoutes);
@@ -46,6 +44,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/doc-executives", docExecutiveRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/universities", universityRoutes);
 app.use("/api/admin/universities", adminUniversityRoutes);
 
 

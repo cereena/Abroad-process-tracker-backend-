@@ -1,33 +1,41 @@
 import University from "../models/University.js";
 
-/* ================= CREATE ================= */
+/* CREATE */
 export const createUniversity = async (req, res) => {
   try {
     const uni = await University.create(req.body);
-
     res.status(201).json(uni);
-  } catch (error) {
-    res.status(400).json({
-      message: "Failed to create university",
-      error: error.message,
-    });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 };
 
-/* ================= READ ================= */
+/* GET ALL */
 export const getAllUniversities = async (req, res) => {
   try {
     const universities = await University.find().sort({ createdAt: -1 });
-
     res.json(universities);
-  } catch (error) {
-    res.status(500).json({
-      message: "Failed to fetch universities",
-    });
+  } catch (err) {
+    res.status(500).json({ message: "Fetch failed" });
   }
 };
 
-/* ================= UPDATE ================= */
+/* GET ONE (IMPORTANT FOR EDIT) */
+export const getOneUniversity = async (req, res) => {
+  try {
+    const uni = await University.findById(req.params.id);
+
+    if (!uni) {
+      return res.status(404).json({ message: "University not found" });
+    }
+
+    res.json(uni);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/* UPDATE */
 export const updateUniversity = async (req, res) => {
   try {
     const uni = await University.findByIdAndUpdate(
@@ -41,14 +49,12 @@ export const updateUniversity = async (req, res) => {
     }
 
     res.json(uni);
-  } catch (error) {
-    res.status(400).json({
-      message: "Update failed",
-    });
+  } catch (err) {
+    res.status(400).json({ message: "Update failed" });
   }
 };
 
-/* ================= DELETE ================= */
+/* DELETE */
 export const deleteUniversity = async (req, res) => {
   try {
     const uni = await University.findByIdAndDelete(req.params.id);
@@ -58,9 +64,7 @@ export const deleteUniversity = async (req, res) => {
     }
 
     res.json({ message: "University deleted" });
-  } catch (error) {
-    res.status(500).json({
-      message: "Delete failed",
-    });
+  } catch (err) {
+    res.status(500).json({ message: "Delete failed" });
   }
 };

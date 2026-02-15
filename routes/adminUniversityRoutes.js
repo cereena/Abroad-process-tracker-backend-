@@ -1,7 +1,9 @@
 import express from "express";
+
 import {
   createUniversity,
   getAllUniversities,
+  getOneUniversity,
   updateUniversity,
   deleteUniversity,
 } from "../controllers/adminUniversityController.js";
@@ -10,19 +12,17 @@ import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// All routes protected for Admin only
+// Protect all admin routes
 router.use(protect(["admin"]));
 
-// GET all universities
 router.get("/", getAllUniversities);
 
-// CREATE university
+router.get("/:id", getOneUniversity); // 🔥 IMPORTANT
+
 router.post("/", createUniversity);
 
-// UPDATE university
 router.put("/:id", updateUniversity);
 
-// DELETE university
 router.delete("/:id", deleteUniversity);
 
 export default router;
