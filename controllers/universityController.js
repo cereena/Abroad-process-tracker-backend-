@@ -19,15 +19,13 @@ export const getUniversities = async (req, res) => {
             country,
             degree,
             stream,
-            intake,
             schengen,
             freeEducation,
+            ielts,
+            intake,
             minRanking,
-            minPartTime,
-            maxApplicationFee,
-            prChance,
-            stayBack,
-            showMoney,
+            partner,
+            stayBackYears,
         } = req.query;
 
         let filter = {};
@@ -37,7 +35,7 @@ export const getUniversities = async (req, res) => {
             filter.tuitionFee = { $lte: Number(maxBudget) };
         }
 
-        /* Min Percentage */
+        /* Percentage */
         if (minPercentage) {
             filter.minPercentage = { $lte: Number(minPercentage) };
         }
@@ -57,9 +55,9 @@ export const getUniversities = async (req, res) => {
             filter.stream = stream;
         }
 
-        /* Intake */
-        if (intake) {
-            filter.intakes = { $in: [intake] };
+        /* IELTS */
+        if (ielts) {
+            filter.ielts = ielts;
         }
 
         /* Schengen */
@@ -72,44 +70,35 @@ export const getUniversities = async (req, res) => {
             filter.freeEducation = freeEducation === "true";
         }
 
-        /* Global Ranking */
+        /* Intake */
+        if (intake) {
+            filter.intakes = { $in: [intake] };
+        }
+
+        /* Ranking */
         if (minRanking) {
             filter.globalRanking = { $lte: Number(minRanking) };
         }
 
-        /* Part Time Hours */
-        if (minPartTime) {
-            filter.partTimeHours = { $gte: Number(minPartTime) };
-        }
-
-        /* Application Fee */
-        if (maxApplicationFee) {
-            filter.applicationFee = { $lte: Number(maxApplicationFee) };
-        }
-
-        /* PR Chance */
-        if (prChance) {
-            filter.prChance = prChance;
+        /* Partner */
+        if (partner !== undefined) {
+            filter.partner = partner === "true";
         }
 
         /* Stay Back */
-        if (stayBack !== undefined) {
-            filter.stayBack = stayBack === "true";
-        }
-
-        /* Show Money */
-        if (showMoney) {
-            filter.showMoney = { $lte: Number(showMoney) };
+        if (stayBackYears) {
+            filter.stayBackYears = { $gte: Number(stayBackYears) };
         }
 
         const universities = await University.find(filter).sort({
-            createdAt: -1,
+            globalRanking: 1,
         });
 
-        res.status(200).json(universities);
+        res.json(universities);
     } catch (err) {
-        console.error("Get Universities Error:", err);
-        res.status(500).json({ message: err.message });
+        console.error(err);
+        res.status(500).json({ message: "Server Error" });
     }
 };
+
 

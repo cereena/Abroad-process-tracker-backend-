@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const universitySchema = new mongoose.Schema(
     {
-        // University Info
+        /* University Info */
         universityName: {
             type: String,
             required: true,
@@ -15,14 +15,21 @@ const universitySchema = new mongoose.Schema(
 
         city: String,
 
-        ranking: Number,
-
         partner: {
             type: Boolean,
             default: false,
         },
 
-        // Course Info
+        globalRanking: {
+            type: Number,
+        },
+
+        globallyRecognized: {
+            type: Boolean,
+            default: true,
+        },
+
+        /* Course Info */
         courseName: {
             type: String,
             required: true,
@@ -34,7 +41,32 @@ const universitySchema = new mongoose.Schema(
             required: true,
         },
 
-        // Money
+        stream: {
+            type: String,
+            enum: [
+                "Computer Science",
+                "Engineering",
+                "Business",
+                "Health",
+                "Arts",
+                "Science",
+            ],
+            required: true,
+        },
+
+        /* Academic Eligibility */
+        minPercentage: {
+            type: Number,
+            default: 60,
+        },
+
+        ielts: {
+            type: String,
+            enum: ["Required", "Waiver", "Not Required"],
+            default: "Required",
+        },
+
+        /* Money */
         tuitionFee: {
             type: Number,
             default: 0,
@@ -55,7 +87,7 @@ const universitySchema = new mongoose.Schema(
             default: false,
         },
 
-        // Visa / PR
+        /* Visa / PR */
         schengen: {
             type: Boolean,
             default: false,
@@ -67,54 +99,28 @@ const universitySchema = new mongoose.Schema(
             default: "Medium",
         },
 
-        stayBack: String,
+        stayBackYears: {
+            type: Number,
+            default: 0,
+        },
 
-        // Work
+        /* Work */
         partTimeHours: {
             type: Number,
             default: 20,
         },
 
-        // Recognition
-        globallyRecognized: {
-            type: Boolean,
-            default: true,
+        /* Intake */
+        intakes: {
+            type: [String],
+            default: [],
         },
 
-        // Intake
-        intakes: [String],
-
-        // Admin
+        /* Admin */
         commissionPercent: {
             type: Number,
             default: 0,
         },
-        // Stream
-        stream: {
-            type: String,
-            enum: [
-                "Computer Science",
-                "Engineering",
-                "Business",
-                "Health",
-                "Arts",
-                "Science",
-            ],
-            required: true,
-        },
-
-        // Intake
-        intakes: [String],
-
-        // Stay Back
-        stayBackYears: Number,
-
-        // Work
-        partTimeHours: Number,
-
-        // Ranking
-        globalRanking: Number,
-
     },
     {
         timestamps: true,
