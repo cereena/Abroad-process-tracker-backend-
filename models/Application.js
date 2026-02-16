@@ -4,13 +4,13 @@ const applicationSchema = new mongoose.Schema(
   {
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Student",
+      ref: "student",
       required: true,
     },
 
     executiveId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "DocExecutive",
+      ref: "docexecutive",
       default: null,
     },
 
@@ -66,7 +66,7 @@ const applicationSchema = new mongoose.Schema(
         note: String,
         suggestedBy: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "DocExecutive",
+          ref: "docexecutive",
         },
         date: {
           type: Date,
@@ -75,6 +75,7 @@ const applicationSchema = new mongoose.Schema(
       },
     ],
   },
+
   { timestamps: true }
 );
 

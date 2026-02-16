@@ -143,18 +143,26 @@ export const getMyApplication = async (req, res) => {
     const studentId = req.user.id;
 
     const app = await Application.findOne({ studentId })
-      .populate("preferences.university")
-      .populate("executiveSuggestions.university");
+      .populate({
+        path: "preferences.university",
+        model: "University",
+      })
+      .populate({
+        path: "executiveSuggestions.university",
+        model: "University",
+      });
 
     if (!app) {
-      return res.json(null);
+      return res.json({ preferences: [] });
     }
 
     res.json(app);
   } catch (e) {
+    console.error(e);
     res.status(500).json({ message: e.message });
   }
 };
+
 
 /* =====================================================
    SUBMIT APPLICATION (STUDENT)
@@ -211,40 +219,117 @@ export const getStudentApplication = async (req, res) => {
   }
 };
 
-/* =====================================================
-   SUGGEST UNIVERSITY (EXECUTIVE)
-===================================================== */
-export const suggestUniversity = async (req, res) => {
+// Update preference priority
+export const reorderPreference = async (req, res) => {
   try {
-    const studentId = req.params.id;
-    const execId = req.user.id;
-
-    const { university, course, note } = req.body;
-
-    if (!university || !course) {
-      return res.status(400).json({
-        message: "University and course required",
-      });
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "Not authorized" });
     }
+
+    const studentId = req.user.id;
+    const { fromIndex, toIndex } = req.body;
 
     const app = await Application.findOne({ studentId });
 
     if (!app) {
-      return res.status(404).json({
-        message: "Application not found",
-      });
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    const prefs = app.preferences;
+
+    if (!Array.isArray(prefs)) {
+      return res.status(400).json({ message: "Invalid preferences" });
+    }
+
+    if (
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      fromIndex >= prefs.length ||
+      toIndex >= prefs.length
+    ) {
+      return res.status(400).json({ message: "Invalid index" });
+    }
+
+    // move item
+    const [moved] = prefs.splice(fromIndex, 1);
+    prefs.splice(toIndex, 0, moved);
+
+    // reassign priorities
+    prefs.forEach((p, i) => {
+      p.priority = i + 1;
+    });
+
+    await app.save();
+
+    res.status(200).json(prefs);
+
+  } catch (e) {
+    console.error("Reorder error:", e);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const suggestUniversity = async (req, res) => {
+  try {
+    const { studentId, universityId, course } = req.body;
+    const execId = req.user.id;
+
+    const app = await Application.findOne({ studentId });
+
+    if (!app) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    const exists = app.executiveSuggestions.find(
+      (s) => s.university.toString() === universityId
+    );
+
+    if (exists) {
+      return res.status(400).json({ message: "Already suggested" });
     }
 
     app.executiveSuggestions.push({
-      university,
+      university: universityId,
       course,
-      note,
       suggestedBy: execId,
     });
 
     await app.save();
 
-    res.json({ message: "Suggestion added", app });
+    const updated = await Application.findOne({ studentId })
+      .populate("executiveSuggestions.university")
+      .populate("executiveSuggestions.suggestedBy");
+
+    res.json(updated.executiveSuggestions);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+export const getMySuggestions = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+
+    const app = await Application.findOne({ studentId })
+      .populate("suggestions.university")
+      .populate("suggestions.suggestedBy");
+
+    res.json(app?.suggestions || []);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+};
+
+export const getMyStudents = async (req, res) => {
+  try {
+    const execId = req.user.id;
+
+    const apps = await Application.find({ executiveId: execId })
+      .populate("studentId", "name email");
+
+    res.json(apps.map(a => a.studentId));
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
