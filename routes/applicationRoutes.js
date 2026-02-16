@@ -1,19 +1,32 @@
 import express from "express";
 import {
-  createApplication,
-  getMyApplications,
-  updateVisaStatus,
+  getMyApplication,
+  savePreference,
+  submitApplication,
+  suggestUniversity,
+  getStudentApplication,
 } from "../controllers/applicationController.js";
+
+import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// create new application
-router.post("/", createApplication);
+// Student
+router.get("/my", protect(["Student"]), getMyApplication);
+router.post("/save", protect(["Student"]), savePreference);
+router.put("/submit", protect(["Student"]), submitApplication);
 
-// get applications for executive
-router.get("/my", getMyApplications);
+// Executive
+router.get(
+  "/student/:id",
+  protect(["DocExecutive"]),
+  getStudentApplication
+);
 
-// update visa status
-router.patch("/:id/visa-status", updateVisaStatus);
+router.post(
+  "/suggest/:id",
+  protect(["DocExecutive"]),
+  suggestUniversity
+);
 
 export default router;

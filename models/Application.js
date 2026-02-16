@@ -4,16 +4,17 @@ const applicationSchema = new mongoose.Schema(
   {
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "student",
+      ref: "Student",
       required: true,
     },
 
     executiveId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "docexecutive",
-      required: true,
+      ref: "DocExecutive",
+      default: null,
     },
 
+    // OLD system (keep)
     university: String,
     course: String,
     country: String,
@@ -42,8 +43,40 @@ const applicationSchema = new mongoose.Schema(
       enum: ["Pending", "Submitted", "Success", "Rejected"],
       default: "Pending",
     },
+
+    // NEW system
+    preferences: [
+      {
+        university: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "University",
+        },
+        course: String,
+        priority: Number,
+      },
+    ],
+
+    executiveSuggestions: [
+      {
+        university: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "University",
+        },
+        course: String,
+        note: String,
+        suggestedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "DocExecutive",
+        },
+        date: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
+
 
 export default mongoose.model("Application", applicationSchema);
