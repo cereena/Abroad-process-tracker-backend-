@@ -12,20 +12,20 @@ import { protect } from "../middleware/auth.js";
 const router = express.Router();
 
 // Student
-router.get("/my", protect(["Student"]), getMyApplication);
-router.post("/save", protect(["Student"]), savePreference);
-router.put("/submit", protect(["Student"]), submitApplication);
+router.get("/my", protect(["student"]), getMyApplication);
+router.post("/save", protect(["student"]), savePreference);
+router.put("/submit", protect(["student"]), submitApplication);
 
 // Executive
 router.get(
   "/student/:id",
-  protect(["DocExecutive"]),
+  protect(["docexecutive"]),
   getStudentApplication
 );
 
 router.post(
   "/suggest/:id",
-  protect(["DocExecutive"]),
+  protect(["docexecutive"]),
   suggestUniversity
 );
 
