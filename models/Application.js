@@ -68,6 +68,15 @@ const applicationSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "docexecutive",
         },
+        interested: {
+          type: Boolean,
+          default: false,
+        },
+        status: {
+          type: String,
+          enum: ["pending", "eligible", "applied", "rejected"],
+          default: "pending",
+        },
         date: {
           type: Date,
           default: Date.now,

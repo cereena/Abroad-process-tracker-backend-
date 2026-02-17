@@ -7,7 +7,10 @@ import {
   getStudentApplication,
   reorderPreference,
   getMySuggestions,
-  getMyStudents
+  getMyStudents,
+  markInterested,
+  updateSuggestionStatus,
+  getInterestedStudents
 } from "../controllers/applicationController.js";
 
 import { protect } from "../middleware/auth.js";
@@ -48,6 +51,24 @@ router.get(
   "/my-students",
   protect(["docexecutive"]),
   getMyStudents
+);
+
+router.put(
+  "/interested/:id",
+  protect(["student"]),
+  markInterested
+);
+
+router.put(
+  "/suggestion/status",
+  protect(["docexecutive"]),
+  updateSuggestionStatus
+);
+
+router.get(
+  "/interested",
+  protect(["docexecutive"]),
+  getInterestedStudents
 );
 
 

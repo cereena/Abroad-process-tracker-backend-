@@ -1,9 +1,9 @@
 import Application from "../models/Application.js";
 import Commission from "../models/Commission.js";
-
-/* =====================================================
+import Notification from "../models/Notification.js";
+/*
    EXECUTIVE: Get Assigned Applications
-===================================================== */
+*/
 export const getMyAssignedApplications = async (req, res) => {
   try {
     const executiveId = req.user.id;
@@ -18,9 +18,9 @@ export const getMyAssignedApplications = async (req, res) => {
   }
 };
 
-/* =====================================================
+/* 
    UPDATE VISA STATUS (EXECUTIVE / ADMIN)
-===================================================== */
+*/
 export const updateVisaStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -271,15 +271,36 @@ export const reorderPreference = async (req, res) => {
 
 export const suggestUniversity = async (req, res) => {
   try {
-    const { studentId, universityId, course } = req.body;
-    const execId = req.user.id;
+    console.log("USER:", req.user);
+    console.log("PARAM ID:", req.params.id);
 
-    const app = await Application.findOne({ studentId });
+    const studentId = req.params.id;
+    const { universityId } = req.body;
 
-    if (!app) {
-      return res.status(404).json({ message: "Application not found" });
+    if (!studentId) {
+      return res.status(400).json({ message: "Student ID missing" });
     }
 
+    if (!universityId) {
+      return res.status(400).json({ message: "University required" });
+    }
+
+    let app = await Application.findOne({ studentId });
+
+    if (!app) {
+      app = await Application.create({
+        studentId,
+        preferences: [],
+        executiveSuggestions: [],
+      });
+    }
+
+    // ensure array exists
+    if (!app.executiveSuggestions) {
+      app.executiveSuggestions = [];
+    }
+
+    // prevent duplicate
     const exists = app.executiveSuggestions.find(
       (s) => s.university.toString() === universityId
     );
@@ -290,33 +311,31 @@ export const suggestUniversity = async (req, res) => {
 
     app.executiveSuggestions.push({
       university: universityId,
-      course,
-      suggestedBy: execId,
+      suggestedBy: req.user.id,
     });
 
     await app.save();
 
-    const updated = await Application.findOne({ studentId })
-      .populate("executiveSuggestions.university")
-      .populate("executiveSuggestions.suggestedBy");
+    res.json({
+      message: "Suggested successfully",
+      suggestions: app.executiveSuggestions,
+    });
 
-    res.json(updated.executiveSuggestions);
-
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (e) {
+    console.error("Suggest error:", e);
+    res.status(500).json({ message: e.message });
   }
 };
-
 
 export const getMySuggestions = async (req, res) => {
   try {
     const studentId = req.user.id;
 
     const app = await Application.findOne({ studentId })
-      .populate("suggestions.university")
-      .populate("suggestions.suggestedBy");
+      .populate("executiveSuggestions.university")
+      .populate("executiveSuggestions.suggestedBy");
 
-    res.json(app?.suggestions || []);
+    res.json(app?.executiveSuggestions || []);
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
@@ -334,3 +353,90 @@ export const getMyStudents = async (req, res) => {
     res.status(500).json({ message: e.message });
   }
 };
+
+export const markInterested = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const suggestionId = req.params.id;
+
+    const app = await Application.findOne({
+      studentId,
+      "executiveSuggestions._id": suggestionId,
+    });
+
+    if (!app) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    const suggestion = app.executiveSuggestions.id(suggestionId);
+
+    if (!suggestion) {
+      return res.status(404).json({ message: "Suggestion not found" });
+    }
+
+    // Mark interested
+    suggestion.interested = true;
+    suggestion.status = "pending";
+
+    await app.save();
+
+    //  Create notification for executive
+    await Notification.create({
+      user: suggestion.suggestedBy,
+
+      // Who should receive it
+      forRole: "docexecutive",
+
+      // Short heading
+      title: "Student Interest",
+
+      // Main content
+      message: "Student showed interest in your suggested university",
+
+      link: `/applications/${app.studentId}`,
+    });
+
+
+    res.json({ message: "Interest sent successfully" });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: e.message });
+  }
+};
+
+
+export const updateSuggestionStatus = async (req, res) => {
+  try {
+    const { suggestionId, status } = req.body;
+
+    const app = await Application.findOne({
+      "executiveSuggestions._id": suggestionId,
+    });
+
+    const suggestion = app.executiveSuggestions.id(suggestionId);
+
+    suggestion.status = status;
+
+    await app.save();
+
+    res.json({ message: "Updated" });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+};
+
+export const getInterestedStudents = async (req, res) => {
+  try {
+    const apps = await Application.find({
+      "executiveSuggestions.interested": true,
+      "executiveSuggestions.suggestedBy": req.user.id,
+    })
+      .populate("studentId")
+      .populate("executiveSuggestions.university");
+
+    res.json(apps);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+};
+
