@@ -58,16 +58,35 @@ export const uploadDocument = async (req, res) => {
       status: "pending",
     });
 
-    // ✅ Notify executive
+    // Per document notification
     await Notification.create({
       title: "New Document Uploaded",
-      message: `${student.name} uploaded ${name} for verification`,
+      message: `${student.name} uploaded ${name}`,
       forRole: "docexecutive",
       userId: student.assignedTo,
       type: "document_upload",
       studentId: student._id,
       documentId: document._id,
     });
+
+    await Notification.findOneAndUpdate(
+      {
+        studentId: student._id,
+        forRole: "docexecutive",
+        title: "Documents Uploaded",
+      },
+      {
+        title: "Documents Uploaded",
+        message: "Student has uploaded all required documents",
+        forRole: "docexecutive",
+        userId: student.assignedTo,
+        studentId: student._id,
+        isRead: false,
+        type: "documents_complete",
+      },
+      { upsert: true, new: true }
+    );
+
 
     // ✅ Send response
     res.status(201).json({

@@ -382,7 +382,8 @@ export const markInterested = async (req, res) => {
 
     //  Create notification for executive
     await Notification.create({
-      user: suggestion.suggestedBy,
+      userId: suggestion.suggestedBy,
+      studentId: app.studentId,
 
       // Who should receive it
       forRole: "docexecutive",
@@ -393,7 +394,8 @@ export const markInterested = async (req, res) => {
       // Main content
       message: "Student showed interest in your suggested university",
 
-      link: `/applications/${app.studentId}`,
+      link: `/docExecutive/applications`,
+
     });
 
 

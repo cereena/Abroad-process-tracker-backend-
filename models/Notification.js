@@ -31,13 +31,16 @@ const notificationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Enquiry",
   },
-
+  link: {
+    type: String,
+  },
 
   isRead: {
     type: Boolean,
     default: false,
   },
 }, { timestamps: true });
+
 notificationSchema.index(
   { studentId: 1, forRole: 1, title: 1 },
   { unique: true }
