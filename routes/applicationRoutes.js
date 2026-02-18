@@ -10,7 +10,10 @@ import {
   getMyStudents,
   markInterested,
   updateSuggestionStatus,
-  getInterestedStudents
+  getInterestedStudents,
+  getAssignedApplications,
+  applyUniversity,
+  updatePreferenceStatus
 } from "../controllers/applicationController.js";
 
 import { protect } from "../middleware/auth.js";
@@ -22,6 +25,11 @@ router.get("/my", protect(["student"]), getMyApplication);
 router.post("/save", protect(["student"]), savePreference);
 router.put("/submit", protect(["student"]), submitApplication);
 
+router.get(
+  "/assigned",
+  protect(["docexecutive"]),
+  getAssignedApplications
+);
 // Executive
 router.get(
   "/student/:id",
@@ -69,6 +77,18 @@ router.get(
   "/interested",
   protect(["docexecutive"]),
   getInterestedStudents
+);
+
+router.post(
+  "/apply",
+  protect(["DocExecutive"]),
+  applyUniversity
+);
+
+router.put(
+  "/preference/status",
+  protect(["docexecutive"]),
+  updatePreferenceStatus
 );
 
 

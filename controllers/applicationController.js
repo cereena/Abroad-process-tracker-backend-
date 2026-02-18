@@ -4,17 +4,24 @@ import Notification from "../models/Notification.js";
 /*
    EXECUTIVE: Get Assigned Applications
 */
-export const getMyAssignedApplications = async (req, res) => {
+export const getAssignedApplications = async (req, res) => {
   try {
-    const executiveId = req.user.id;
 
-    const apps = await Application.find({ executiveId })
-      .populate("studentId", "name email")
-      .sort({ createdAt: -1 });
+    const applications = await Application.find({
+      executiveId: req.user._id,
+    })
 
-    res.json(apps);
-  } catch (e) {
-    res.status(500).json({ message: e.message });
+      .populate("studentId", "name enquiryId")
+      .populate("preferences.university", "name country")
+      .populate("executiveSuggestions.university", "name country")
+      .populate("appliedUniversities.university", "name");
+
+
+    res.json(applications);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server Error" });
   }
 };
 
@@ -124,6 +131,7 @@ export const savePreference = async (req, res) => {
     app.preferences.push({
       university: universityId,
       course,
+      status: "preferred",
       priority: app.preferences.length + 1,
     });
 
@@ -370,42 +378,33 @@ export const markInterested = async (req, res) => {
 
     const suggestion = app.executiveSuggestions.id(suggestionId);
 
-    if (!suggestion) {
-      return res.status(404).json({ message: "Suggestion not found" });
+    // Mark interested in suggestion
+    suggestion.interested = true;
+    suggestion.status = "interested";
+
+    // ALSO update preference
+    const pref = app.preferences.find(
+      (p) =>
+        p.university.toString() ===
+        suggestion.university.toString()
+    );
+
+    if (pref) {
+      pref.status = "interested";
     }
 
-    // Mark interested
-    suggestion.interested = true;
-    suggestion.status = "pending";
+    // assign executive
+    app.executiveId = suggestion.suggestedBy;
 
     await app.save();
 
-    //  Create notification for executive
-    await Notification.create({
-      userId: suggestion.suggestedBy,
-      studentId: app.studentId,
-
-      // Who should receive it
-      forRole: "docexecutive",
-
-      // Short heading
-      title: "Student Interest",
-
-      // Main content
-      message: "Student showed interest in your suggested university",
-
-      link: `/docExecutive/applications`,
-
-    });
-
-
     res.json({ message: "Interest sent successfully" });
+
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: e.message });
   }
 };
-
 
 export const updateSuggestionStatus = async (req, res) => {
   try {
@@ -441,4 +440,98 @@ export const getInterestedStudents = async (req, res) => {
     res.status(500).json({ message: e.message });
   }
 };
+
+export const applyUniversity = async (req, res) => {
+  try {
+    const { suggestionId } = req.body;
+
+    const app = await Application.findOne({
+      "executiveSuggestions._id": suggestionId,
+    }).populate("executiveSuggestions.university");
+
+    if (!app) {
+      return res.status(404).json({ message: "Not found" });
+    }
+
+    const suggestion = app.executiveSuggestions.id(suggestionId);
+
+    const uni = suggestion.university;
+
+    // Prevent duplicate
+    const exists = app.appliedUniversities.find(
+      a => a.university.toString() === uni._id.toString()
+    );
+
+    if (exists) {
+      return res.status(400).json({ message: "Already applied" });
+    }
+
+    app.appliedUniversities.push({
+      university: uni._id,
+      course: suggestion.course,
+      country: uni.country,   // ✅ now works
+      appliedBy: req.user.id,
+    });
+
+    suggestion.status = "applied";
+    // Update preference status
+    const pref = app.preferences.find(
+      p =>
+        p.university.toString() ===
+        suggestion.university.toString()
+    );
+
+    if (pref) {
+      pref.status = "applied";
+    }
+
+
+    await app.save();
+
+    res.json({ message: "Applied" });
+
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: e.message });
+  }
+};
+
+
+export const updatePreferenceStatus = async (req, res) => {
+  try {
+    const { prefId, status } = req.body;
+
+    const app = await Application.findOne({
+      "preferences._id": prefId,
+    });
+
+    if (!app) {
+      return res.status(404).json({ message: "Not found" });
+    }
+
+    const pref = app.preferences.id(prefId);
+
+    pref.status = status;
+
+    // If applied → move to appliedUniversities
+    if (status === "applied") {
+      app.appliedUniversities.push({
+        university: pref.university,
+        course: pref.course,
+        country: pref.country,
+        appliedBy: req.user.id,
+      });
+    }
+
+    await app.save();
+
+    res.json({ message: "Updated" });
+
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+};
+
+
+
 
