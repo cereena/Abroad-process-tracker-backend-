@@ -1,6 +1,8 @@
 import Application from "../models/Application.js";
 import Commission from "../models/Commission.js";
 import Notification from "../models/Notification.js";
+import University from "../models/University.js";
+
 /*
    EXECUTIVE: Get Assigned Applications
 */
@@ -370,7 +372,7 @@ export const markInterested = async (req, res) => {
     const app = await Application.findOne({
       studentId,
       "executiveSuggestions._id": suggestionId,
-    });
+    }).populate("studentId");
 
     if (!app) {
       return res.status(404).json({ message: "Application not found" });
@@ -378,10 +380,14 @@ export const markInterested = async (req, res) => {
 
     const suggestion = app.executiveSuggestions.id(suggestionId);
 
-    // Mark interested in suggestion
+    if (suggestion.interested) {
+      return res.json({ message: "Already marked interested" });
+    }
+    // Mark interested
     suggestion.interested = true;
+    suggestion.status = "pending";
 
-    // ALSO update preference
+    // Update preference
     const pref = app.preferences.find(
       (p) =>
         p.university.toString() ===
@@ -392,10 +398,31 @@ export const markInterested = async (req, res) => {
       pref.status = "interested";
     }
 
-    // assign executive
+    // Assign executive
     app.executiveId = suggestion.suggestedBy;
 
     await app.save();
+
+    /* FETCH UNIVERSITY INFO */
+    const uni = await University.findById(suggestion.university);
+
+    // create new notification
+    const newNote = await Notification.create({
+      title: "Student Interested",
+      message: `${app.studentId.personalInfo?.firstName} is interested in a university`,
+      studentId: studentId,
+      userId: suggestion.suggestedBy,
+      forRole: "docexecutive",
+      suggestionId: suggestion._id,
+      preferenceId: pref?._id || null,
+      course: suggestion.course || "N/A",
+      universityName: uni?.universityName || "N/A",
+      country: uni?.country || "N/A",
+      enquiryId: app.studentId.studentEnquiryCode,
+      link: "/docExecutive/preferences",
+    });
+
+    console.log("CREATED NOTIFICATION:", newNote);
 
     res.json({ message: "Interest sent successfully" });
 
@@ -410,7 +437,10 @@ export const updateSuggestionStatus = async (req, res) => {
     const { suggestionId, status } = req.body;
 
     const app = await Application.findOne({
-      "executiveSuggestions._id": suggestionId,
+      $or: [
+        { "preferences._id": prefId },
+        { "executiveSuggestions._id": prefId }
+      ]
     });
 
     const suggestion = app.executiveSuggestions.id(suggestionId);
@@ -453,12 +483,11 @@ export const applyUniversity = async (req, res) => {
     }
 
     const suggestion = app.executiveSuggestions.id(suggestionId);
-
     const uni = suggestion.university;
 
     // Prevent duplicate
     const exists = app.appliedUniversities.find(
-      a => a.university.toString() === uni._id.toString()
+      (a) => a.university.toString() === uni._id.toString()
     );
 
     if (exists) {
@@ -468,26 +497,26 @@ export const applyUniversity = async (req, res) => {
     app.appliedUniversities.push({
       university: uni._id,
       course: suggestion.course,
-      country: uni.country,   // ✅ now works
+      country: uni.country,
       appliedBy: req.user.id,
     });
 
     suggestion.status = "applied";
+
     // Update preference status
     const pref = app.preferences.find(
-      p =>
-        p.university.toString() ===
-        suggestion.university.toString()
+      (p) => p.university?.toString() === suggestion.university?.toString()
     );
 
     if (pref) {
       pref.status = "applied";
     }
 
+    app.applicationStatus = "Submitted";
 
     await app.save();
 
-    res.json({ message: "Applied" });
+    res.json({ message: "Applied successfully" });
 
   } catch (e) {
     console.error(e);
@@ -500,8 +529,16 @@ export const updatePreferenceStatus = async (req, res) => {
   try {
     const { prefId, status } = req.body;
 
+    console.log("BODY:", req.body);
+
+    console.log("STATUS RECEIVED:", status);
+    console.log("PREF ID:", prefId);
+
     const app = await Application.findOne({
-      "preferences._id": prefId,
+      $or: [
+        { "preferences._id": prefId },
+        { "executiveSuggestions._id": prefId }
+      ]
     });
 
     if (!app) {
@@ -509,6 +546,16 @@ export const updatePreferenceStatus = async (req, res) => {
     }
 
     const pref = app.preferences.id(prefId);
+    const suggestion = app.executiveSuggestions.id(prefId);
+
+    if (pref) {
+      pref.status = status;
+    }
+
+    if (suggestion) {
+      suggestion.status = status;
+    }
+
 
     pref.status = status;
 
@@ -516,17 +563,16 @@ export const updatePreferenceStatus = async (req, res) => {
     if (status === "applied") {
       app.appliedUniversities.push({
         university: pref.university,
-        course: pref.course,
+        course: pref.course || "Unknown Course",
         country: pref.country,
         appliedBy: req.user.id,
       });
     }
 
     await app.save();
-
     res.json({ message: "Updated" });
-
   } catch (e) {
+    console.error("ERROR:", e);
     res.status(500).json({ message: e.message });
   }
 };

@@ -27,12 +27,21 @@ const notificationSchema = new mongoose.Schema({
     ref: "student",
   },
 
-  enquiryId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Enquiry",
-  },
+  course: String,
+  universityName: String,
+  country: String,
+  enquiryId: String,
+
   link: {
     type: String,
+  },
+
+  suggestionId: {
+    type: mongoose.Schema.Types.ObjectId,
+  },
+
+  preferenceId: {
+    type: mongoose.Schema.Types.ObjectId,
   },
 
   isRead: {
@@ -42,7 +51,7 @@ const notificationSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 notificationSchema.index(
-  { studentId: 1, forRole: 1, title: 1 },
+  { studentId: 1, forRole: 1, title: 1, suggestionId: 1 },
   { unique: true }
 );
 

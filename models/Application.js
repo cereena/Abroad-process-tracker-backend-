@@ -65,6 +65,14 @@ const applicationSchema = new mongoose.Schema(
       },
     ],
 
+    suggestionId: {
+      type: mongoose.Schema.Types.ObjectId,
+    },
+
+    preferenceId: {
+      type: mongoose.Schema.Types.ObjectId,
+    },
+
 
     executiveSuggestions: [
       {
@@ -84,15 +92,32 @@ const applicationSchema = new mongoose.Schema(
         },
         status: {
           type: String,
-          enum: ["pending", "eligible", "applied", "rejected"],
-          default: "pending",
+          enum: ["suggested", "pending", "eligible", "applied", "rejected"],
+          default: "suggested",
         },
+
         date: {
           type: Date,
           default: Date.now,
         },
       },
     ],
+
+    applicationStatus: {
+      type: String,
+      enum: [
+        "Pending",
+        "Applied",
+        "Offer_Received",
+        "Acceptance_Received",
+        "Fee_Paid",
+        "Visa_Submitted",
+        "Visa_Approved",
+        "Visa_Rejected",
+        "Student_Rejected"
+      ],
+      default: "Pending",
+    },
 
     appliedUniversities: [
       {
