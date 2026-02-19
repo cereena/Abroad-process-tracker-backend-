@@ -8,22 +8,39 @@ export const getAssignedApplications = async (req, res) => {
   try {
 
     const applications = await Application.find({
-      executiveId: req.user._id,
+      executiveId: req.user.id,   //  keep this
     })
 
-      .populate("studentId", "name enquiryId")
-      .populate("preferences.university", "name country")
-      .populate("executiveSuggestions.university", "name country")
-      .populate("appliedUniversities.university", "name");
+      // STUDENT INFO (for name + enquiryId)
+      .populate({
+        path: "studentId",
+        select: "studentEnquiryCode personalInfo"
+      })
 
 
-    res.json(applications);
+      // PREFERENCES → UNIVERSITY (name + country)
+      .populate("preferences.university")
+      // SUGGESTIONS → UNIVERSITY
+      .populate(
+        "executiveSuggestions.university"
+      )
+
+      // APPLIED → UNIVERSITY
+      .populate("appliedUniversities.university");
+
+    res.status(200).json(applications);
 
   } catch (err) {
+
     console.error(err);
-    res.status(500).json({ message: "Server Error" });
+
+    res.status(500).json({
+      message: "Failed to fetch applications",
+    });
+
   }
 };
+
 
 /* 
    UPDATE VISA STATUS (EXECUTIVE / ADMIN)
@@ -237,17 +254,13 @@ export const reorderPreference = async (req, res) => {
     const studentId = req.user.id;
     const { fromIndex, toIndex } = req.body;
 
-    const app = await Application.findOne({ studentId });
+    let app = await Application.findOne({ studentId });
 
     if (!app) {
       return res.status(404).json({ message: "Application not found" });
     }
 
     const prefs = app.preferences;
-
-    if (!Array.isArray(prefs)) {
-      return res.status(400).json({ message: "Invalid preferences" });
-    }
 
     if (
       fromIndex < 0 ||
@@ -258,40 +271,31 @@ export const reorderPreference = async (req, res) => {
       return res.status(400).json({ message: "Invalid index" });
     }
 
-    // move item
     const [moved] = prefs.splice(fromIndex, 1);
     prefs.splice(toIndex, 0, moved);
 
-    // reassign priorities
     prefs.forEach((p, i) => {
       p.priority = i + 1;
     });
 
     await app.save();
 
-    res.status(200).json(prefs);
+    // 🔥 REFETCH WITH POPULATE
+    app = await Application.findOne({ studentId })
+      .populate("preferences.university");
 
-  } catch (e) {
-    console.error("Reorder error:", e);
+    res.status(200).json(app.preferences);
+
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
 export const suggestUniversity = async (req, res) => {
   try {
-    console.log("USER:", req.user);
-    console.log("PARAM ID:", req.params.id);
-
     const studentId = req.params.id;
-    const { universityId } = req.body;
-
-    if (!studentId) {
-      return res.status(400).json({ message: "Student ID missing" });
-    }
-
-    if (!universityId) {
-      return res.status(400).json({ message: "University required" });
-    }
+    const { universityId, course, note } = req.body;
 
     let app = await Application.findOne({ studentId });
 
@@ -303,12 +307,6 @@ export const suggestUniversity = async (req, res) => {
       });
     }
 
-    // ensure array exists
-    if (!app.executiveSuggestions) {
-      app.executiveSuggestions = [];
-    }
-
-    // prevent duplicate
     const exists = app.executiveSuggestions.find(
       (s) => s.university.toString() === universityId
     );
@@ -319,6 +317,8 @@ export const suggestUniversity = async (req, res) => {
 
     app.executiveSuggestions.push({
       university: universityId,
+      course: course,  // ✅ now correctly saved
+      note,
       suggestedBy: req.user.id,
     });
 
@@ -328,12 +328,12 @@ export const suggestUniversity = async (req, res) => {
       message: "Suggested successfully",
       suggestions: app.executiveSuggestions,
     });
-
   } catch (e) {
     console.error("Suggest error:", e);
     res.status(500).json({ message: e.message });
   }
 };
+
 
 export const getMySuggestions = async (req, res) => {
   try {
@@ -380,7 +380,6 @@ export const markInterested = async (req, res) => {
 
     // Mark interested in suggestion
     suggestion.interested = true;
-    suggestion.status = "interested";
 
     // ALSO update preference
     const pref = app.preferences.find(
