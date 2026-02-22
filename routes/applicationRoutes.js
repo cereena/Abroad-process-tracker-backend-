@@ -13,7 +13,8 @@ import {
   getInterestedStudents,
   getAssignedApplications,
   applyUniversity,
-  updatePreferenceStatus
+  updatePreferenceStatus,
+  updateApplicationProgress
 } from "../controllers/applicationController.js";
 
 import { protect } from "../middleware/auth.js";
@@ -81,7 +82,7 @@ router.get(
 
 router.post(
   "/apply",
-  protect(["DocExecutive"]),
+  protect(["docexecutive"]),
   applyUniversity
 );
 
@@ -90,6 +91,8 @@ router.put(
   protect(["docexecutive"]),
   updatePreferenceStatus
 );
+
+router.put("/progress", protect, updateApplicationProgress);
 
 
 export default router;

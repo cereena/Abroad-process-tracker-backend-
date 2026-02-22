@@ -26,12 +26,6 @@ const applicationSchema = new mongoose.Schema(
       default: "Pending",
     },
 
-    applicationStatus: {
-      type: String,
-      enum: ["Pending", "Submitted"],
-      default: "Pending",
-    },
-
     offerStatus: {
       type: String,
       enum: ["Pending", "Received"],
@@ -59,8 +53,8 @@ const applicationSchema = new mongoose.Schema(
 
         status: {
           type: String,
-          enum: ["preferred", "interested", "applied", "not_eligible"],
-          default: "preferred",
+          enum: ["suggested","preferred", "interested", "applied", "not_eligible"],
+          default: "suggested",
         },
       },
     ],
@@ -92,7 +86,7 @@ const applicationSchema = new mongoose.Schema(
         },
         status: {
           type: String,
-          enum: ["suggested", "pending", "eligible", "applied", "rejected"],
+          enum: ["suggested", "pending", "eligible", "applied", "rejected","interested"],
           default: "suggested",
         },
 
@@ -107,7 +101,6 @@ const applicationSchema = new mongoose.Schema(
       type: String,
       enum: [
         "Pending",
-        "Applied",
         "Offer_Received",
         "Acceptance_Received",
         "Fee_Paid",
