@@ -1,26 +1,34 @@
-import mongoose from "mongoose"; // Changed from require
+import mongoose from "mongoose";
 
 const progressSchema = new mongoose.Schema(
   {
+    applicationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Application",
+      required: true,
+    },
+
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "student",
-      required: true
+      required: true,
     },
+
     currentLevel: {
       type: Number,
-      default: 1
+      default: 1,
     },
+
     steps: [
       {
         title: String,
-        completed: Boolean
-      }
-    ]
+        completed: Boolean,
+      },
+    ],
   },
   { timestamps: true }
 );
 
-// Changed from module.exports to export default
 const Progress = mongoose.model("Progress", progressSchema);
+
 export default Progress;

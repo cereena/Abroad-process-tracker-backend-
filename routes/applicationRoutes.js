@@ -14,8 +14,7 @@ import {
   getAssignedApplications,
   applyUniversity,
   updatePreferenceStatus,
-  updateApplicationProgress
-} from "../controllers/applicationController.js";
+updateApplicationStatus} from "../controllers/applicationController.js";
 
 import { protect } from "../middleware/auth.js";
 
@@ -92,7 +91,7 @@ router.put(
   updatePreferenceStatus
 );
 
-router.put("/progress", protect, updateApplicationProgress);
+router.put("/progress", protect, updateApplicationStatus);
 
 
 export default router;

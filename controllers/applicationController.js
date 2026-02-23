@@ -595,7 +595,7 @@ export const updatePreferenceStatus = async (req, res) => {
   }
 };
 
-export const updateApplicationProgress = async (req, res) => {
+export const updateApplicationStatus = async (req, res) => {
   try {
     const { appId, status } = req.body;
 

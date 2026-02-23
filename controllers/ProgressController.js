@@ -1,39 +1,47 @@
-const Progress = require("../models/Progress");
+import Application from "../models/Application.js";
+import Progress from "../models/Progress.js";
 
-exports.updateProgress = async (req, res) => {
+
+export const markOfferReceived = async (req, res) => {
   try {
-    const { studentId, currentLevel } = req.body;
+    const { appId, universityId } = req.body;
 
-    let progress = await Progress.findOne({ studentId });
+    const app = await Application.findById(appId);
 
-    if (!progress) {
-      progress = new Progress({
-        studentId,
-        currentLevel
-      });
-    } else {
-      progress.currentLevel = currentLevel;
-    }
+    const uni = app.appliedUniversities.id(universityId);
 
-    await progress.save();
+    uni.status = "Offer_Received";
 
-    res.status(200).json({
-      message: "Progress updated",
-      progress
-    });
+    await app.save();
+
+    await Progress.findOneAndUpdate(
+      { applicationId: appId },
+      { currentStage: "Offer_Received" },
+      { upsert: true }
+    );
+
+    res.json({ message: "Offer received updated" });
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
-
-exports.getProgress = async (req, res) => {
+export const markRejected = async (req, res) => {
   try {
-    const { studentId } = req.params;
+    const { appId } = req.body;
 
-    const progress = await Progress.findOne({ studentId });
+    const app = await Application.findById(appId);
 
-    res.status(200).json(progress || { currentLevel: 1 });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    if (!app) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    app.applicationStatus = "Student_Rejected";
+    await app.save();
+
+    res.json({ message: "Application rejected" });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };

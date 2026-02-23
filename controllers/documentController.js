@@ -116,6 +116,10 @@ export const getMyDocuments = async (req, res) => {
     const documents = await Document.find({
       student: studentId,
     })
+
+    if (doc.type === "offer_letter" && !student.secondPaymentDone) {
+      doc.locked = true;
+    }
     res.json(documents);
 
   } catch (err) {

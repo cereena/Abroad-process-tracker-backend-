@@ -53,7 +53,7 @@ const applicationSchema = new mongoose.Schema(
 
         status: {
           type: String,
-          enum: ["suggested","preferred", "interested", "applied", "not_eligible"],
+          enum: ["suggested", "preferred", "interested", "applied", "not_eligible"],
           default: "suggested",
         },
       },
@@ -86,7 +86,7 @@ const applicationSchema = new mongoose.Schema(
         },
         status: {
           type: String,
-          enum: ["suggested", "pending", "eligible", "applied", "rejected","interested"],
+          enum: ["suggested", "pending", "eligible", "applied", "rejected", "interested"],
           default: "suggested",
         },
 
@@ -101,6 +101,7 @@ const applicationSchema = new mongoose.Schema(
       type: String,
       enum: [
         "Pending",
+        "Applied",
         "Offer_Received",
         "Acceptance_Received",
         "Fee_Paid",
@@ -131,7 +132,16 @@ const applicationSchema = new mongoose.Schema(
 
         status: {
           type: String,
-          enum: ["Pending", "Submitted", "Accepted", "Rejected"],
+          enum: [
+            "Applied",
+            "Offer_Received",
+            "Rejected",
+            "Acceptance_Received",
+            "Fee_Paid",
+            "Visa_Submitted",
+            "Visa_Approved",
+            "Visa_Rejected"
+          ],
           default: "Pending",
         },
 
