@@ -137,6 +137,14 @@ const applicationSchema = new mongoose.Schema(
           uploadedAt: Date
         },
 
+        acceptanceLetter: {
+          url: String,
+          uploadedAt: Date
+        },
+        feeReceipt: {
+          url: String,
+          uploadedAt: Date
+        },
         course: {
           type: String,
           required: true,
