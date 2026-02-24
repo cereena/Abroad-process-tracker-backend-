@@ -140,6 +140,9 @@ export const getStudentDocuments = async (req, res) => {
       student: studentId,
     })
       .populate("student", "name email");
+    if (doc.type === "offer_letter" && !student.secondPaymentDone) {
+      doc.locked = true;
+    }
 
     res.json(docs);
   } catch (err) {

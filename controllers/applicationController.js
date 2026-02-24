@@ -386,14 +386,12 @@ export const markInterested = async (req, res) => {
     }
 
     if (suggestion.status === "interested") {
-      return res.json({ message: "Already marked interested" });
+      return res.json({ message: "Already interested" });
     }
 
-    // Only update suggestion
     suggestion.status = "interested";
     suggestion.interested = true;
 
-    // assign executive (important)
     app.executiveId = suggestion.suggestedBy;
 
     await app.save();
@@ -402,14 +400,14 @@ export const markInterested = async (req, res) => {
 
     await Notification.create({
       title: "Student Interested",
-      message: `${app.studentId.personalInfo?.firstName || "A student"} is interested`,
+      message: `${app.studentId.personalInfo?.firstName || "Student"} is interested`,
       studentId,
       userId: suggestion.suggestedBy,
       forRole: "docexecutive",
       suggestionId: suggestion._id,
-      course: suggestion.course || "N/A",
-      universityName: uni?.universityName || "N/A",
-      country: uni?.country || "N/A",
+      course: suggestion.course,
+      universityName: uni?.universityName,
+      country: uni?.country,
       enquiryId: app.studentId.studentEnquiryCode,
       link: "/docExecutive/preferences",
     });
@@ -427,11 +425,12 @@ export const updateSuggestionStatus = async (req, res) => {
     const { suggestionId, status } = req.body;
 
     const app = await Application.findOne({
-      $or: [
-        { "preferences._id": prefId },
-        { "executiveSuggestions._id": prefId }
-      ]
+      "executiveSuggestions._id": suggestionId
     });
+
+    if (!app) {
+      return res.status(404).json({ message: "Suggestion not found" });
+    }
 
     const suggestion = app.executiveSuggestions.id(suggestionId);
 
@@ -439,7 +438,7 @@ export const updateSuggestionStatus = async (req, res) => {
 
     await app.save();
 
-    res.json({ message: "Updated" });
+    res.json({ message: "Updated successfully" });
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
@@ -462,75 +461,60 @@ export const getInterestedStudents = async (req, res) => {
 
 export const applyUniversity = async (req, res) => {
   try {
-    console.log("BODY:", req.body);
-
     const { suggestionId } = req.body;
-    console.log("SuggestionId received:", suggestionId);
 
     const app = await Application.findOne({
       executiveId: req.user.id,
-      "executiveSuggestions._id": suggestionId,
+      $or: [
+        { "executiveSuggestions._id": suggestionId },
+        { "preferences._id": suggestionId }
+      ]
     })
       .populate("executiveSuggestions.university")
+      .populate("preferences.university")
       .populate("appliedUniversities.university");
 
     if (!app) {
       return res.status(404).json({ message: "Not found" });
     }
 
-    const suggestion = app.executiveSuggestions.id(suggestionId);
+    let suggestion = app.executiveSuggestions.id(suggestionId);
+    let pref = app.preferences.id(suggestionId);
 
-    if (!suggestion) {
-      return res.status(404).json({ message: "Suggestion not found" });
+    const item = suggestion || pref;
+
+    if (!item) {
+      return res.status(404).json({ message: "Item not found" });
     }
 
-    const uni = suggestion.university;
+    const uni = item.university;
 
-    // Prevent duplicate
     const alreadyApplied = app.appliedUniversities.find(
       (a) =>
         a.university.toString() === uni._id.toString() &&
-        a.course === suggestion.course
+        a.course === item.course
     );
 
     if (alreadyApplied) {
       return res.status(400).json({ message: "Already applied" });
     }
 
-    const pref = app.preferences.find(
-      (p) => p.university?.toString() === uni._id.toString()
-    );
-
-    const appliedCourse =
-      suggestion?.course ||
-      pref?.course ||
-      suggestion?.university?.courseName ||
-      uni?.courseName ||
-      "Unknown Course";
-
     app.appliedUniversities.push({
       university: uni._id,
-      course: appliedCourse,
+      course: item.course || uni.courseName || "Course Not Specified",
       country: uni.country,
       appliedBy: req.user.id,
+      status: "Applied"
     });
 
-    suggestion.status = "applied";
+    item.status = "applied";
 
-    if (pref) pref.status = "applied";
-
-    app.applicationStatus = "Pending";
+    app.applicationStatus = "Applied";
 
     await app.save();
 
     res.json({ message: "Applied successfully" });
-    const exists = app.appliedUniversities.some(
-      (a) => a.university.toString() === uni._id.toString()
-    );
 
-    if (exists) {
-      return res.status(400).json({ message: "Already applied" });
-    }
   } catch (e) {
     console.error("APPLY ERROR:", e);
     res.status(500).json({ message: e.message });
@@ -539,12 +523,8 @@ export const applyUniversity = async (req, res) => {
 
 export const updatePreferenceStatus = async (req, res) => {
   try {
+
     const { prefId, status } = req.body;
-
-    console.log("BODY:", req.body);
-
-    console.log("STATUS RECEIVED:", status);
-    console.log("PREF ID:", prefId);
 
     const app = await Application.findOne({
       $or: [
@@ -566,25 +546,6 @@ export const updatePreferenceStatus = async (req, res) => {
 
     if (suggestion) {
       suggestion.status = status;
-    }
-
-
-    // If applied → move to appliedUniversities
-    if (status === "applied") {
-      const uniId = pref?.university || suggestion?.university;
-      const course = pref?.course || suggestion?.course || "Unknown Course";
-
-      const exists = app.appliedUniversities.find(
-        (a) => a.university.toString() === uniId.toString()
-      );
-
-      if (!exists) {
-        app.appliedUniversities.push({
-          university: uniId,
-          course,
-          appliedBy: req.user.id,
-        });
-      }
     }
 
     await app.save();

@@ -44,29 +44,24 @@ const applicationSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "University",
         },
-
         course: String,
-
         country: String,
-
         priority: Number,
 
         status: {
           type: String,
-          enum: ["suggested", "preferred", "interested", "applied", "not_eligible"],
-          default: "suggested",
+          enum: [
+            "suggested",
+            "preferred",
+            "interested",
+            "approved",
+            "applied",
+            "not_eligible"
+          ],
+          default: "preferred",
         },
       },
     ],
-
-    suggestionId: {
-      type: mongoose.Schema.Types.ObjectId,
-    },
-
-    preferenceId: {
-      type: mongoose.Schema.Types.ObjectId,
-    },
-
 
     executiveSuggestions: [
       {
@@ -86,8 +81,14 @@ const applicationSchema = new mongoose.Schema(
         },
         status: {
           type: String,
-          enum: ["suggested", "pending", "eligible", "applied", "rejected", "interested"],
-          default: "suggested",
+          enum: [
+            "pending",
+            "interested",
+            "eligible",
+            "rejected",
+            "applied"
+          ],
+          default: "pending",
         },
 
         date: {
@@ -126,6 +127,21 @@ const applicationSchema = new mongoose.Schema(
           required: true,
         },
 
+        documentsVerified: {
+          type: Boolean,
+          default: false
+        },
+
+        offerLetter: {
+          url: String,
+          uploadedAt: Date
+        },
+
+        course: {
+          type: String,
+          required: true,
+        },
+
         country: String,
 
         fee: Number,
@@ -142,7 +158,7 @@ const applicationSchema = new mongoose.Schema(
             "Visa_Approved",
             "Visa_Rejected"
           ],
-          default: "Pending",
+          default: "Applied",
         },
 
         appliedBy: {
