@@ -576,3 +576,22 @@ export const updateApplicationStatus = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const completePayment = async (req, res) => {
+  try {
+    const { appId, universityId } = req.body;
+
+    const app = await Application.findById(appId);
+
+    const uni = app.appliedUniversities.id(universityId);
+
+    uni.paymentStatus = "Paid";
+
+    await app.save();
+
+    res.json({ message: "Payment completed" });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
