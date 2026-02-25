@@ -103,7 +103,7 @@ const applicationSchema = new mongoose.Schema(
       enum: [
         "Pending",
         "Applied",
-        "Offer_Received",
+        "Offer Received",
         "Acceptance_Received",
         "Fee_Paid",
         "Visa_Submitted",
@@ -154,11 +154,17 @@ const applicationSchema = new mongoose.Schema(
 
         fee: Number,
 
+        paymentStatus: {
+          type: String,
+          enum: ["Pending", "Paid"],
+          default: "Pending"
+        },
+
         status: {
           type: String,
           enum: [
             "Applied",
-            "Offer_Received",
+            "Offer Received",
             "Rejected",
             "Acceptance_Received",
             "Fee_Paid",

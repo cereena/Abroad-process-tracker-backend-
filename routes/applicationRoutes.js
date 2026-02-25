@@ -91,7 +91,7 @@ router.put(
   updatePreferenceStatus
 );
 
-router.put("/progress", protect, updateApplicationStatus);
+router.put("/progress", protect(["docexecutive"]), updateApplicationStatus);
 
 
 export default router;
