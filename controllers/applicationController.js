@@ -595,3 +595,21 @@ export const completePayment = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getApplicationById = async (req, res) => {
+  try {
+    const app = await Application.findById(req.params.id)
+      .populate("student", "name email")
+      .populate("appliedUniversities.university");
+
+    if (!app) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    res.json(app);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

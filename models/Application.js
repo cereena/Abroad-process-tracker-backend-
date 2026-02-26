@@ -127,6 +127,8 @@ const applicationSchema = new mongoose.Schema(
           required: true,
         },
 
+        country: String,
+
         documentsVerified: {
           type: Boolean,
           default: false
@@ -141,23 +143,22 @@ const applicationSchema = new mongoose.Schema(
           url: String,
           uploadedAt: Date
         },
+
         feeReceipt: {
           url: String,
           uploadedAt: Date
         },
-        course: {
-          type: String,
-          required: true,
-        },
-
-        country: String,
 
         fee: Number,
 
         paymentStatus: {
           type: String,
-          enum: ["Pending", "Paid"],
-          default: "Pending"
+          enum: [
+            "Registration Paid",
+            "Service Paid",
+            "Visa Paid"
+          ],
+          default: "Registration Paid",
         },
 
         status: {
