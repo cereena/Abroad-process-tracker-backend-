@@ -19,6 +19,7 @@ import documentRoutes from "./routes/documentRoutes.js";
 import cloudinary from "./config/cloudinary.js"; 
 import universityRoutes from "./routes/universityRoutes.js";
 import adminUniversityRoutes from "./routes/adminUniversityRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 
 
 const app = express();
@@ -46,7 +47,7 @@ app.use("/api/doc-executives", docExecutiveRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/universities", universityRoutes);
 app.use("/api/admin/universities", adminUniversityRoutes);
-
+app.use("/api/payment", paymentRoutes);
 
 
 // Test route

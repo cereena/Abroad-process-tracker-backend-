@@ -577,39 +577,23 @@ export const updateApplicationStatus = async (req, res) => {
   }
 };
 
-export const completePayment = async (req, res) => {
-  try {
-    const { appId, universityId } = req.body;
-
-    const app = await Application.findById(appId);
-
-    const uni = app.appliedUniversities.id(universityId);
-
-    uni.paymentStatus = "Paid";
-
-    await app.save();
-
-    res.json({ message: "Payment completed" });
-
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
 export const getApplicationById = async (req, res) => {
   try {
-    const app = await Application.findById(req.params.id)
-      .populate("student", "name email")
-      .populate("appliedUniversities.university");
+    const app = await Application.findOne({
+      "appliedUniversities._id": req.params.id,
+    }).populate("appliedUniversities.university");
 
     if (!app) {
       return res.status(404).json({ message: "Application not found" });
     }
 
-    res.json(app);
+    const applied = app.appliedUniversities.id(req.params.id);
 
+    res.json({
+      applicationId: app._id,
+      appliedUniversity: applied,
+    });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };

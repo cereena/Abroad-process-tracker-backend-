@@ -14,7 +14,6 @@ import {
   getAssignedApplications,
   applyUniversity,
   updatePreferenceStatus,
-  completePayment,
   updateApplicationStatus,
   getApplicationById
 } from "../controllers/applicationController.js";
@@ -95,8 +94,7 @@ router.put(
 );
 
 router.put("/progress", protect(["docexecutive"]), updateApplicationStatus);
-router.put("/pay", protect, completePayment);
 
-router.get("/:id", protect, getApplicationById);
+router.get("/:id", protect(["student"]), getApplicationById);
 
 export default router;
