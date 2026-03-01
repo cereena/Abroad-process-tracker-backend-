@@ -186,7 +186,12 @@ export const getMyApplication = async (req, res) => {
       return res.json({ preferences: [], appliedUniversities: [] });
     }
 
-    res.json(app);
+    res.json({
+      _id: app._id,
+      preferences: app.preferences,
+      appliedUniversities: app.appliedUniversities
+    });
+
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: e.message });
@@ -580,20 +585,23 @@ export const updateApplicationStatus = async (req, res) => {
 export const getApplicationById = async (req, res) => {
   try {
     const app = await Application.findOne({
-      "appliedUniversities._id": req.params.id,
+      "appliedUniversities._id": req.params.id
     }).populate("appliedUniversities.university");
 
     if (!app) {
       return res.status(404).json({ message: "Application not found" });
     }
 
-    const applied = app.appliedUniversities.id(req.params.id);
+    const applied = app.appliedUniversities.find(
+      (a) => a._id.toString() === req.params.id
+    );
 
     res.json({
-      applicationId: app._id,
-      appliedUniversity: applied,
+      ...applied.toObject(),
+      appId: app._id
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };

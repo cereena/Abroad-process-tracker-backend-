@@ -3,13 +3,21 @@ import Application from "../models/Application.js";
 
 export const createServiceFeeSession = async (req, res) => {
   try {
-    const { applicationId } = req.body;
+    const { appliedId } = req.body;
 
-    const app = await Application.findById(applicationId);
+    if (!appliedId) {
+      return res.status(400).json({ message: "Applied ID missing" });
+    }
 
-    if (!app) {
+    const application = await Application.findOne({
+      "appliedUniversities._id": appliedId
+    });
+
+    if (!application) {
       return res.status(404).json({ message: "Application not found" });
     }
+
+    const appliedUni = application.appliedUniversities.id(appliedId);
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -27,10 +35,11 @@ export const createServiceFeeSession = async (req, res) => {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.CLIENT_URL}/student/payment-success/${applicationId}`,
-      cancel_url: `${process.env.CLIENT_URL}/student/payment/${applicationId}`,
+      success_url: `${process.env.CLIENT_URL}/student/payment-success/${appliedId}`,
+      cancel_url: `${process.env.CLIENT_URL}/student/payment/${appliedId}`,
       metadata: {
-        applicationId,
+        appliedId,
+        applicationId: application._id.toString(),
       },
     });
 

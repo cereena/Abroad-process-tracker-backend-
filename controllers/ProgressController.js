@@ -1,6 +1,6 @@
 import Application from "../models/Application.js";
 import Progress from "../models/Progress.js";
-
+import cloudinary from "../config/cloudinary.js";
 
 export const markOfferReceived = async (req, res) => {
   try {
