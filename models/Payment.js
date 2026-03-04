@@ -9,7 +9,6 @@ const paymentSchema = new mongoose.Schema({
   universityId: {
     type: mongoose.Schema.Types.ObjectId,
   },
-  String: true;
 
   studentId: {
     type: mongoose.Schema.Types.ObjectId,
