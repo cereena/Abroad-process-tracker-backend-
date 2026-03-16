@@ -9,9 +9,7 @@ const storage = new CloudinaryStorage({
       folder: "study-abroad-documents",
       resource_type: "raw",        
       use_filename: true,
-      unique_filename: false,
-      attachment: true,  
-      flags: "attachment",          
+      unique_filename: false,        
       public_id: `offer_${Date.now()}`,
     };
   },
