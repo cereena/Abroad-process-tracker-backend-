@@ -151,14 +151,24 @@ const applicationSchema = new mongoose.Schema(
 
         fee: Number,
 
-        paymentStatus: {
-          type: String,
-          enum: [
-            "Registration Paid",
-            "Service Paid",
-            "Visa Paid"
-          ],
-          default: "Registration Paid",
+        registrationPaid: {
+          type: Boolean,
+          default: false
+        },
+
+        serviceFeePaid: {
+          type: Boolean,
+          default: false
+        },
+
+        tuitionFeePaid: {
+          type: Boolean,
+          default: false
+        },
+
+        visaFeePaid: {
+          type: Boolean,
+          default: false
         },
 
         status: {
@@ -167,6 +177,7 @@ const applicationSchema = new mongoose.Schema(
             "Applied",
             "Offer Received",
             "Rejected",
+            "Service_Paid",
             "Acceptance_Received",
             "Fee_Paid",
             "Visa_Submitted",

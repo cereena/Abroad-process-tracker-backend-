@@ -40,6 +40,8 @@ export const uploadOfferLetter = async (req, res) => {
     public_id: req.file.filename,
   };
 
+  uni.status = "Offer Received";
+
   await app.save();
 
   res.json({
@@ -51,6 +53,8 @@ export const uploadOfferLetter = async (req, res) => {
     }),
   });
 };
+
+
 export const markRejected = async (req, res) => {
   try {
     const { appId } = req.body;
